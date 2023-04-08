@@ -1,124 +1,188 @@
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
+import Head from "next/head";
+import Image from "next/image";
+import Select, { SingleValue } from "react-select";
+import { ChangeEvent, useEffect, useState } from "react";
+import { Parser } from "@/class/Parser/parser";
+import { Graph } from "@/class/Graphs/graph";
+import { Algorithm } from "@/lib/algorithm";
 
-const inter = Inter({ subsets: ['latin'] })
+interface optionInterface {
+  value: string;
+  label: string;
+}
 
 export default function Home() {
+  const [file, setFile] = useState<File | null>(null);
+  const [graph, setGraph] = useState<Graph | null>(null);
+  const [options, setOptions] = useState<optionInterface[]>([]);
+  const [start, setStart] = useState<optionInterface | null>(null);
+  const [goal, setGoal] = useState<optionInterface | null>(null);
+  const [algorithm, setAlgorithm] = useState<Algorithm>(Algorithm.UCS);
+
+  useEffect(() => {
+    console.log(algorithm, start, goal, graph);
+    if (start != null && goal != null && graph != null) {
+      // calculate path
+    }
+  }, [start, goal, algorithm, graph]);
+
+  function onStartSelectChange(newValue: SingleValue<optionInterface>) {
+    if (newValue != undefined) {
+      let newOptions = options.filter(
+        (option) => option.value != newValue?.value
+      );
+      setOptions(newOptions);
+      setStart(newValue);
+    }
+  }
+
+  function onGoalSelectChange(newValue: SingleValue<optionInterface>) {
+    if (newValue != undefined) {
+      let newOptions = options.filter(
+        (option) => option.value != newValue?.value
+      );
+      setOptions(newOptions);
+      setGoal(newValue);
+    }
+  }
+
+  function onFileUpload(input: FileList | null) {
+    if (!input || input.length == 0) {
+      return console.log("no file input");
+    }
+
+    const textType = "text/plain";
+    let file = input[0];
+    if (file.type.match(textType)) {
+      const reader = new FileReader();
+
+      reader.onerror = () => {
+        console.error("failed to read file", file, reader.error);
+      };
+
+      reader.onload = () => {
+        setFile(file);
+        let content = reader.result as string;
+        const parser = new Parser();
+        let graph = parser.parse(content);
+        setGraph(graph);
+        let options: optionInterface[] = [];
+        graph.getGraphKeys().forEach((key) => {
+          options.push({ value: key, label: key });
+        });
+        setOptions(options);
+        console.log(options);
+        console.log(graph.toString());
+      };
+
+      reader.readAsText(file);
+    }
+
+    console.log(input);
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/pages/index.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+    <>
+      <Head>
+        <title>Shortest Path Finder</title>
+        <meta
+          name="description"
+          content="Shortest path finder with UCS and A* algorithm"
         />
-      </div>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <main className="w-screen h-screen relative text-black">
+        <div>
+          <Image src={"/placeholder.png"} alt="placeholder" fill />
+        </div>
+        <div className="w-[400px] h-[calc(100%-80px)] fixed right-8 top-1/2 -translate-y-1/2 bg-white px-12 py-12 flex items-center flex-col divide-y space-y-4 rounded-xl">
+          <div className="w-full">
+            <h1 className="text-3xl font-bold mb-4 ">Shortest Path Finder</h1>
+            <button className="relative w-full">
+              <label
+                className="block text-lg text-white  w-full bg-emerald-500 py-2 rounded-xl hover:shadow-lg hover:shadow-emerald-200 hover:rounded-2xl hover:cursor-pointer"
+                htmlFor="upload"
+              >
+                Select Text File
+              </label>
+              <input
+                id="upload"
+                type="file"
+                accept=".txt"
+                className="absolute z-[-1] top-0 left-10 w-full text-sm"
+                onChange={(e) => onFileUpload(e.target.files)}
+              />
+            </button>
+            {file && <p className="mt-2">{file.name}</p>}
+          </div>
+          <div className="w-full mt-4">
+            <h2 className="mt-4 mb-2">Start</h2>
+            <Select
+              value={start}
+              options={options}
+              styles={{
+                control: (baseStyles, state) => ({
+                  ...baseStyles,
+                  borderRadius: "10px",
+                  border: state.isFocused ? "4" : "2",
+                  borderColor: state.isFocused ? "#22c55e" : "lightgray",
+                }),
+              }}
+              onChange={onStartSelectChange}
+              isDisabled={options.length == 0}
+            />
+            <h2 className="mt-4 mb-2">Goal</h2>
+            <Select
+              value={goal}
+              options={options}
+              styles={{
+                control: (baseStyles, state) => ({
+                  ...baseStyles,
+                  borderRadius: "10px",
+                }),
+              }}
+              onChange={onGoalSelectChange}
+              isDisabled={options.length == 0}
+            />
+            <div className="flex flex-col mt-4 ">
+              <h2 className="mb-2">Select Algorithm</h2>
+              <div>
+                <input
+                  type="radio"
+                  name="topping"
+                  value={Algorithm.UCS}
+                  id="ucs"
+                  onChange={(e) => setAlgorithm(Algorithm.UCS)}
+                  checked={algorithm == Algorithm.UCS}
+                />
+                <label htmlFor="ucs" className="ml-2">
+                  UCS
+                </label>
+              </div>
 
-      <div className="mb-32 grid text-center lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`${inter.className} mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p
-            className={`${inter.className} m-0 max-w-[30ch] text-sm opacity-50`}
-          >
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`${inter.className} mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p
-            className={`${inter.className} m-0 max-w-[30ch] text-sm opacity-50`}
-          >
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`${inter.className} mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p
-            className={`${inter.className} m-0 max-w-[30ch] text-sm opacity-50`}
-          >
-            Discover and deploy boilerplate example Next.js&nbsp;projects.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`${inter.className} mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p
-            className={`${inter.className} m-0 max-w-[30ch] text-sm opacity-50`}
-          >
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
+              <div>
+                <input
+                  type="radio"
+                  name="topping"
+                  value={Algorithm.ASTAR}
+                  id="astar"
+                  checked={algorithm == Algorithm.ASTAR}
+                  onChange={(e) => setAlgorithm(Algorithm.ASTAR)}
+                />
+                <label htmlFor="astar" className="ml-2">
+                  A*
+                </label>
+              </div>
+            </div>
+          </div>
+          <div className="w-full">
+            <h2 className="mt-4">Path</h2>
+            <p className="mt-2">A - B - C - D</p>
+            <h2 className="mt-4">Total Distance: 39</h2>
+          </div>
+        </div>
+      </main>
+    </>
+  );
 }
