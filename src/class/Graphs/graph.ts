@@ -3,6 +3,15 @@ import { Vertex } from "./vertex";
 class Graph {
   private _graphObj: Map<string, Vertex> = new Map<string, Vertex>();
   private _graph: Map<string, string[]> = new Map<string, string[]>();
+  private _maxX: number | null = null
+  private _maxY: number | null = null
+  private _minX: number | null = null
+  private _minY: number | null = null
+
+  public get maxX(): number | null {return this._maxX}
+  public get maxY(): number | null {return this._maxY}
+  public get minX(): number | null {return this._minX}
+  public get minY(): number | null {return this._minY}
 
   /**
    * 
@@ -10,6 +19,20 @@ class Graph {
    */
   public getGraphKeys(): string[] {
     return Array.from(this._graph.keys())
+  }
+
+  /**
+   * 
+   * @returns array of vertex
+   */
+  public getVertexes(): Vertex[] {
+    let result: Vertex[] = []
+    const vertexesKey = Array.from(this._graphObj.keys())
+    vertexesKey.forEach((key) => {
+      result.push(this._graphObj.get(key)!)
+    })
+    console.log(result)
+    return result
   }
 
   /**
@@ -48,6 +71,15 @@ class Graph {
     if (!(vertex.name in this._graph)) {
       this._graphObj.set(vertex.name, vertex)
       this._graph.set(vertex.name, [])
+      if (this._maxX == null && this._maxY == null && this._minX == null && this._minY == null) {
+        this._maxX = vertex.px
+        this._maxY = vertex.py
+      } else {
+        if (this._maxX != null && vertex.px > this._maxX) this._maxX = vertex.px;
+        if (this._minX != null && vertex.px < this._minX) this._minX = vertex.px;
+        if (this._maxY != null && vertex.py > this._maxY) this._maxY = vertex.py;
+        if (this._minY != null && vertex.py < this._minY) this._minY = vertex.py;
+      }
     }
   }
 
