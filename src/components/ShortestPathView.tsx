@@ -19,6 +19,8 @@ import MapEventHandler from "./MapEventHandler";
 import { haversineDistance } from "@/lib/operation";
 import { Vertex } from "@/class/Graphs/vertex";
 import { Path } from "@/class/Paths/path";
+import { ToastContainer, toast } from "react-toastify";
+import Link from "next/link";
 
 export interface MapData {
   type: string;
@@ -42,7 +44,7 @@ interface OptionInterface {
 const layers: Layer[] = [];
 
 const ShortestPathView = () => {
-  const defaultPosition: LatLngTuple = [-6.920798126505993, 107.60440580899946];
+  const defaultPosition: LatLngTuple = [-6.8915, 107.6107];
   const [file, setFile] = useState<File | null>(null);
   const [graph, setGraph] = useState<Graph>(new Graph());
   const [options, setOptions] = useState<OptionInterface[]>([]);
@@ -104,45 +106,51 @@ const ShortestPathView = () => {
         setFile(file);
         let content = reader.result as string;
         const parser = new Parser();
-        let graph = parser.parse(content);
-        setGraph(graph);
+        try {
+          let graph = parser.parse(content);
+          setGraph(graph);
 
-        let options: OptionInterface[] = [];
-        graph.getGraphKeys().forEach((key) => {
-          options.push({ value: key, label: key });
-        });
-        setOptions(options);
-        if (map != null) {
-          const vertexes = graph.getVertexes();
-          map.flyTo([vertexes[0].px, vertexes[0].py]);
-          vertexes.forEach((vertex) => {
-            let vertexMark = marker(
-              { lat: vertex.px, lng: vertex.py },
-              {
-                icon: new Icon({
-                  iconUrl: "marker-icon-red.png",
-                  iconSize: [31, 41],
-                  iconAnchor: [16, 41],
-                }),
-                title: vertex.name,
-              }
-            ).addTo(map);
-            vertexMark.bindTooltip(vertex.name);
-            layers.push(vertexMark);
-
-            graph.getAdjVertexes(vertex.name).forEach((adjVertex) => {
-              addLine(
-                map,
-                [
-                  [vertex.px, vertex.py],
-                  [adjVertex.px, adjVertex.py],
-                ],
-                (vertex.haversineDistanceWith(adjVertex) * 1000)
-                  .toFixed(2)
-                  .toString() + " m"
-              );
-            });
+          let options: OptionInterface[] = [];
+          graph.getGraphKeys().forEach((key) => {
+            options.push({ value: key, label: key });
           });
+          setOptions(options);
+          if (map != null) {
+            const vertexes = graph.getVertexes();
+            map.flyTo([vertexes[0].px, vertexes[0].py]);
+            vertexes.forEach((vertex) => {
+              let vertexMark = marker(
+                { lat: vertex.px, lng: vertex.py },
+                {
+                  icon: new Icon({
+                    iconUrl: "marker-icon-red.png",
+                    iconSize: [31, 41],
+                    iconAnchor: [16, 41],
+                  }),
+                  title: vertex.name,
+                }
+              ).addTo(map);
+              vertexMark.bindTooltip(vertex.name);
+              layers.push(vertexMark);
+
+              graph.getAdjVertexes(vertex.name).forEach((adjVertex) => {
+                addLine(
+                  map,
+                  [
+                    [vertex.px, vertex.py],
+                    [adjVertex.px, adjVertex.py],
+                  ],
+                  (vertex.haversineDistanceWith(adjVertex) * 1000)
+                    .toFixed(2)
+                    .toString() + " m"
+                );
+              });
+            });
+          }
+        } catch {
+          console.log("Invalid input");
+          setFile(null);
+          notify();
         }
       };
 
@@ -298,8 +306,13 @@ const ShortestPathView = () => {
     }
   }
 
+  function notify() {
+    toast.error("Invalid file input. Check repository for more info.");
+  }
+
   return (
     <>
+      <ToastContainer position="top-center" />
       <MapContainer
         center={
           graph.isEmpty()
@@ -433,14 +446,24 @@ const ShortestPathView = () => {
             DRAW GRAPH
           </button>
 
-          <button
-            className="w-full bg-white rounded-2xl py-4 hover:bg-emerald-200 hover:rounded-3xl font-bold"
-            onClick={(e) => {
-              reset();
-            }}
-          >
-            RESET
-          </button>
+          <div className="w-full flex flex-row space-x-4">
+            <button
+              className="w-full bg-white rounded-2xl py-4 hover:bg-emerald-200 hover:rounded-3xl font-bold"
+              onClick={(e) => {
+                reset();
+              }}
+            >
+              RESET
+            </button>
+            <Link
+              href={"https://github.com/debbyalmadea/Tucil3_13521153_13521155"}
+              className="w-full"
+            >
+              <button className="w-full bg-white rounded-2xl py-4 hover:bg-emerald-200 hover:rounded-3xl font-bold">
+                REPOSITORY
+              </button>
+            </Link>
+          </div>
         </div>
       </div>
     </>

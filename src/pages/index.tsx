@@ -1,5 +1,6 @@
 import Head from "next/head";
 import dynamic from "next/dynamic";
+import "react-toastify/dist/ReactToastify.css";
 const ShortestPathView = dynamic(
   () => import("@/components/ShortestPathView"),
   {
