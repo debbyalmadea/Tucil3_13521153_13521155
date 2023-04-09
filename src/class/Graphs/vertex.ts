@@ -1,5 +1,6 @@
 class Vertex {
-    constructor(public name: string, public px: number, public py: number) {}
+    constructor(public name: string, public px: number, public py: number) {
+    }
   
     /**
      * 

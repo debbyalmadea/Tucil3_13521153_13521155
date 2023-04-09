@@ -9,9 +9,17 @@ import { PriorityQueue } from "tstl/container/PriorityQueue"
 
 
 class FindingPath{
-    private pqueue : PriorityQueue<Path> = new PriorityQueue<Path>((a, b) => a.cost + a.distance >= b.cost + b.distance);
+    private _pqueue : PriorityQueue<Path> = new PriorityQueue<Path>((a, b) => a.cost + a.distance >= b.cost + b.distance);
     private _isVisited: Map<string, boolean> = new Map<string, boolean>();
     private _isUCS : boolean = false;
+
+    constructor(algorithm: Algorithm) {
+        this._isUCS = algorithm == Algorithm.UCS
+    }
+
+    public get pqueue(): PriorityQueue<Path> {
+        return this._pqueue
+    }
 
     public useUCS(){
         this._isUCS = true;
@@ -21,7 +29,8 @@ class FindingPath{
         this._isUCS = false;
     }
 
-    public UseUCSA(map : Graph, startName: string, finishName : string){
+    public useUCSA(map : Graph, startName: string, finishName : string){
+        console.log("HEYYYYYYYYYYYYyyy")
         let solution = new Path(map, finishName);
         solution.add(startName, this._isUCS);
         this.pqueue.push(solution);
@@ -50,9 +59,8 @@ class FindingPath{
             // iterate the adjacent vertexes if not visited yet
             if(adjVertexes.length > 0){
                for(let i = 0; i < adjVertexes.length; i++){
-                    
-                    if(this._isVisited.get(adjVertexes[i]) == undefined){
-                        temp.add(adjVertexes[i], this._isUCS);
+                    if(this._isVisited.get(adjVertexes[i].name) == undefined){
+                        temp.add(adjVertexes[i].name, this._isUCS);
                         this.pqueue.push(temp);
                         temp = solution.copy();
                     }
@@ -63,11 +71,10 @@ class FindingPath{
                }
             }
         }
-
-        }
-        
+    }
 }
 
+export default FindingPath
 
 
 

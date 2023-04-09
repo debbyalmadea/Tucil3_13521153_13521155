@@ -13,6 +13,7 @@ class Graph {
   public get minX(): number | null {return this._minX}
   public get minY(): number | null {return this._minY}
 
+
   /**
    * 
    * @returns keys of graph, or in this case the vertex's name
@@ -31,7 +32,6 @@ class Graph {
     vertexesKey.forEach((key) => {
       result.push(this._graphObj.get(key)!)
     })
-    console.log(result)
     return result
   }
 
@@ -98,23 +98,19 @@ class Graph {
   public addEdge(vertex1: Vertex, vertex2: Vertex): void {
     // check if vertex1 exists
     if (this._graph.get(vertex1.name) == undefined) {
-      console.log("add vertex")
       this.addVertex(vertex1);
     }
 
     // check if vertex2 exists
     if (this._graph.get(vertex2.name) == undefined) {
-      console.log("add vertex")
       this.addVertex(vertex2);
     }
 
     if (!this._graph.get(vertex1.name)!.includes(vertex2.name)) {
-      console.log("add edge")
       this._graph.get(vertex1.name)!.push(vertex2.name);
     }
 
     if (!this._graph.get(vertex2.name)!.includes(vertex1.name)) {
-      console.log("add edge")
       this._graph.get(vertex2.name)!.push(vertex1.name);
     }
   }

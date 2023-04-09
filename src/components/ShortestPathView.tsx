@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import "leaflet/dist/leaflet.css";
-import { MapContainer, MarkerProps, TileLayer } from "react-leaflet";
+import { MapContainer, TileLayer } from "react-leaflet";
 import {
   Icon,
   LatLngExpression,
-  LatLngLiteral,
   LatLngTuple,
   Layer,
   LeafletMouseEvent,
@@ -13,12 +12,13 @@ import {
   polyline,
 } from "leaflet";
 import { Graph } from "@/class/Graphs/graph";
-import { Algorithm } from "@/lib/algorithm";
+import FindingPath, { Algorithm } from "@/lib/algorithm";
 import Select, { SingleValue } from "react-select";
 import { Parser } from "@/class/Parser/parser";
 import MapEventHandler from "./MapEventHandler";
 import { haversineDistance } from "@/lib/operation";
 import { Vertex } from "@/class/Graphs/vertex";
+import { Path } from "@/class/Paths/path";
 
 export interface MapData {
   type: string;
@@ -34,7 +34,7 @@ enum MapMode {
   DRAW,
 }
 
-interface optionInterface {
+interface OptionInterface {
   value: string;
   label: string;
 }
@@ -45,38 +45,41 @@ const ShortestPathView = () => {
   const defaultPosition: LatLngTuple = [-6.920798126505993, 107.60440580899946];
   const [file, setFile] = useState<File | null>(null);
   const [graph, setGraph] = useState<Graph>(new Graph());
-  const [options, setOptions] = useState<optionInterface[]>([]);
-  const [start, setStart] = useState<optionInterface | null>(null);
-  const [goal, setGoal] = useState<optionInterface | null>(null);
+  const [options, setOptions] = useState<OptionInterface[]>([]);
+  const [start, setStart] = useState<OptionInterface | null>(null);
+  const [goal, setGoal] = useState<OptionInterface | null>(null);
   const [algorithm, setAlgorithm] = useState<Algorithm>(Algorithm.UCS);
   const [map, setMap] = useState<Map | null>(null);
   const [mode, setMode] = useState<MapMode>(MapMode.BASIC);
   const [tempVertex, setTempVertex] = useState<Vertex | null>(null);
-  // const [visualizer, setVisualizer] = useState<Visualizer>(Visualizer.MAP);
+  const [path, setPath] = useState<Path | null>(null);
 
   useEffect(() => {
     console.log(algorithm, start, goal, graph);
     if (start != null && goal != null && !graph.isEmpty()) {
       // calculate path
+      drawPath("#0ea5e9");
+      let findingPath = new FindingPath(algorithm);
+      let result = findingPath.useUCSA(graph, start.value, goal.value);
+      console.log("RESULT", result);
+      if (result != undefined) {
+        setPath(result);
+      }
     }
   }, [start, goal, algorithm, graph]);
 
-  function onStartSelectChange(newValue: SingleValue<optionInterface>) {
-    if (newValue != undefined) {
-      let newOptions = options.filter(
-        (option) => option.value != newValue?.value
-      );
-      setOptions(newOptions);
+  useEffect(() => {
+    drawPath();
+  }, [path]);
+
+  function onStartSelectChange(newValue: SingleValue<OptionInterface>) {
+    if (newValue != undefined && newValue != goal) {
       setStart(newValue);
     }
   }
 
-  function onGoalSelectChange(newValue: SingleValue<optionInterface>) {
-    if (newValue != undefined) {
-      let newOptions = options.filter(
-        (option) => option.value != newValue?.value
-      );
-      setOptions(newOptions);
+  function onGoalSelectChange(newValue: SingleValue<OptionInterface>) {
+    if (newValue != undefined && newValue != start) {
       setGoal(newValue);
     }
   }
@@ -86,6 +89,7 @@ const ShortestPathView = () => {
       return console.log("no file input");
     }
 
+    setMode(MapMode.BASIC);
     reset();
     const textType = "text/plain";
     let file = input[0];
@@ -103,7 +107,7 @@ const ShortestPathView = () => {
         let graph = parser.parse(content);
         setGraph(graph);
 
-        let options: optionInterface[] = [];
+        let options: OptionInterface[] = [];
         graph.getGraphKeys().forEach((key) => {
           options.push({ value: key, label: key });
         });
@@ -127,14 +131,16 @@ const ShortestPathView = () => {
             layers.push(vertexMark);
 
             graph.getAdjVertexes(vertex.name).forEach((adjVertex) => {
-              console.log(adjVertex);
-              let edgeLine = polyline([
-                { lat: vertex.px, lng: vertex.py },
-                { lat: adjVertex.px, lng: adjVertex.py },
-              ]).addTo(map);
-              let distance = vertex.haversineDistanceWith(adjVertex) * 1000;
-              edgeLine.bindTooltip(distance.toFixed(2).toString() + " m");
-              layers.push(edgeLine);
+              addLine(
+                map,
+                [
+                  [vertex.px, vertex.py],
+                  [adjVertex.px, adjVertex.py],
+                ],
+                (vertex.haversineDistanceWith(adjVertex) * 1000)
+                  .toFixed(2)
+                  .toString() + " m"
+              );
             });
           });
         }
@@ -142,30 +148,30 @@ const ShortestPathView = () => {
 
       reader.readAsText(file);
     }
-
-    console.log(input);
   }
 
   function onMapLoad(map: Map) {
-    console.log(map.getZoom());
     setMap(map);
   }
 
   function onMapDoubleClick(map: Map, ev: LeafletMouseEvent) {
     console.log("double clicked");
     const { lat, lng } = ev.latlng;
-    console.log(ev.latlng);
     if (mode == MapMode.DRAW) {
-      addMarker(map, lat, lng);
-      graph.addVertex(new Vertex(lat.toString() + lng.toString(), lat, lng));
-      let newOptions = [
-        ...options,
-        {
-          value: lat.toString() + lng.toString(),
-          label: lat.toString() + lng.toString(),
-        },
-      ];
-      setOptions(newOptions);
+      if (getVertex(lat, lng) == null) {
+        let vertexName = (graph.getGraphKeys().length + 1).toString();
+        addMarker(map, lat, lng, vertexName);
+        graph.addVertex(new Vertex(vertexName, lat, lng));
+        let newOptions = [
+          ...options,
+          {
+            value: vertexName,
+            label: vertexName,
+          },
+        ];
+        setOptions(newOptions);
+      } else {
+      }
     }
   }
 
@@ -177,7 +183,6 @@ const ShortestPathView = () => {
       if (vertex != null) {
         map.dragging.disable();
         setTempVertex(vertex);
-        console.log(vertex);
       }
       map.dragging.enable();
     }
@@ -185,18 +190,20 @@ const ShortestPathView = () => {
 
   function onMouseUp(map: Map, ev: LeafletMouseEvent) {
     const { lat, lng } = ev.latlng;
-    console.log(ev.latlng);
     if (mode == MapMode.DRAW) {
       map.dragging.enable();
       let vertex = getVertex(lat, lng);
       if (vertex != null && tempVertex != null && !tempVertex.isEqual(vertex)) {
-        let newLine = polyline([
-          { lat: vertex.px, lng: vertex.py },
-          { lat: tempVertex.px, lng: tempVertex.py },
-        ]).addTo(map);
-        let distance = vertex.haversineDistanceWith(tempVertex) * 1000;
-        newLine.bindTooltip(distance.toFixed(2).toString() + " m");
-        layers.push(newLine);
+        addLine(
+          map,
+          [
+            [vertex.px, vertex.py],
+            [tempVertex.px, tempVertex.py],
+          ],
+          (vertex.haversineDistanceWith(tempVertex) * 1000)
+            .toFixed(2)
+            .toString() + " m"
+        );
         graph.addEdge(tempVertex, vertex);
         setTempVertex(null);
       }
@@ -217,7 +224,6 @@ const ShortestPathView = () => {
           1000 <=
         10.0
       ) {
-        console.log(vertex);
         foundVertex = vertex;
       }
     });
@@ -231,6 +237,7 @@ const ShortestPathView = () => {
     setOptions([]);
     setStart(null);
     setGoal(null);
+    setPath(null);
     if (map != null) {
       layers.forEach((layer) => {
         map.removeLayer(layer);
@@ -238,7 +245,7 @@ const ShortestPathView = () => {
     }
   }
 
-  function addMarker(map: Map, lat: number, lng: number) {
+  function addMarker(map: Map, lat: number, lng: number, label: string) {
     let newVertex = marker(
       { lat: lat, lng: lng },
       {
@@ -247,11 +254,48 @@ const ShortestPathView = () => {
           iconSize: [31, 41],
           iconAnchor: [16, 41],
         }),
-        title: lat.toString() + lng.toString(),
+        title: label,
       }
     ).addTo(map);
-    newVertex.bindTooltip(lat.toString() + lng.toString());
+    newVertex.bindTooltip(label);
     layers.push(newVertex);
+  }
+
+  function addLine(
+    map: Map,
+    position: LatLngExpression[],
+    label: string,
+    color: string = "#0ea5e9",
+    opacity: number = 0.5
+  ) {
+    let newLine = polyline(position, { color: color, opacity: opacity }).addTo(
+      map
+    );
+    newLine.bindTooltip(label);
+    layers.push(newLine);
+  }
+
+  function drawPath(color: string = "#ef4444") {
+    if (path != null && !graph.isEmpty()) {
+      for (let i = 0; i < path.path.length - 1; i++) {
+        let currVertex = graph.getVertexObj(path.path[i])!;
+        let nextVertex = graph.getVertexObj(path.path[i + 1])!;
+        if (map != null) {
+          addLine(
+            map,
+            [
+              [currVertex.px, currVertex.py],
+              [nextVertex.px, nextVertex.py],
+            ],
+            (currVertex.haversineDistanceWith(nextVertex) * 1000)
+              .toFixed(2)
+              .toString() + " m",
+            color,
+            0.8
+          );
+        }
+      }
+    }
   }
 
   return (
@@ -275,7 +319,6 @@ const ShortestPathView = () => {
           onMapDblclick={onMapDoubleClick}
           onMouseDown={onMouseDown}
           onMouseUp={onMouseUp}
-          mode={mode}
         />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -365,11 +408,17 @@ const ShortestPathView = () => {
                 </div>
               </div>
             </div>
-            <div className="w-full">
-              <h2 className="mt-4">Path</h2>
-              <p className="mt-2">A - B - C - D</p>
-              <h2 className="mt-4">Total Distance: 39</h2>
-            </div>
+
+            {path != null && (
+              <div className="w-full">
+                <h2 className="mt-4">Path</h2>
+                <p className="mt-2">{path.toString()}</p>
+                <h2 className="mt-4">Euclidean Distance: {path.cost}</h2>
+                <h2 className="mt-4">
+                  Haversine Distance: {(path.haversineCost * 1000).toFixed(2)} m
+                </h2>
+              </div>
+            )}
           </div>
 
           <button
@@ -382,6 +431,15 @@ const ShortestPathView = () => {
             }}
           >
             DRAW GRAPH
+          </button>
+
+          <button
+            className="w-full bg-white rounded-2xl py-4 hover:bg-emerald-200 hover:rounded-3xl font-bold"
+            onClick={(e) => {
+              reset();
+            }}
+          >
+            RESET
           </button>
         </div>
       </div>
