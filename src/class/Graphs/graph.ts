@@ -13,6 +13,7 @@ class Graph {
   public get minX(): number | null {return this._minX}
   public get minY(): number | null {return this._minY}
 
+
   /**
    * 
    * @returns keys of graph, or in this case the vertex's name
@@ -31,7 +32,6 @@ class Graph {
     vertexesKey.forEach((key) => {
       result.push(this._graphObj.get(key)!)
     })
-    console.log(result)
     return result
   }
 
@@ -54,13 +54,20 @@ class Graph {
    * @param vertexName 
    * @returns all adjency vertex of vertex with name equals to vertexName
    */
-  public getAdjVertexes(vertexName: string) : string[] {
-    let adjVertexes = this._graph.get(vertexName)
-    if (adjVertexes != undefined) {
-      return adjVertexes;
-    } else {
-      return [];
-    }
+  public getAdjVertexes(vertexName: string) : Vertex[] {
+    let adjVertexesName = this._graph.get(vertexName)
+    let adjVertexes: Vertex[] = []
+    if (adjVertexesName != undefined) {
+      adjVertexesName.forEach((adjVertexName) => {
+        let vertex = this._graphObj.get(adjVertexName)
+        adjVertexes.push(vertex!)
+      })
+    } 
+    return adjVertexes
+  }
+
+  public isEmpty() {
+    return this._graph.size == 0;
   }
 
   /**

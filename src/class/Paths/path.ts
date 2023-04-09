@@ -6,6 +6,7 @@ class Path {
   private _path: string[] = [];
   private _cost: number = 0;
   private _distance: number= 0;
+  private _haversineCost: number = 0;
 
   constructor(private graph: Graph, private _goalName : string) {}
 
@@ -18,6 +19,10 @@ class Path {
   }
   public get cost(): number {
     return this._cost;
+  }
+
+  public get haversineCost(): number {
+    return this._haversineCost;
   }
 
   public get distance(): number {
@@ -35,6 +40,8 @@ class Path {
         if (this._path.length > 0) {
             lastVertexObj = this.graph.getVertexObj(this.lastVertex);
             this._cost += vertexObj.distanceWith(lastVertexObj!);
+            this._haversineCost += vertexObj.haversineDistanceWith(lastVertexObj!)
+            console.log(this.haversineCost)
         }
         if(isUCS){
             this._distance = 0;
@@ -51,6 +58,7 @@ class Path {
     copyPath._cost = this.cost;
     copyPath._distance = this.distance;
     copyPath._path = [...this._path];
+    copyPath._haversineCost = this.haversineCost
     return copyPath;
   }
 
