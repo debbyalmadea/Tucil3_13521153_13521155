@@ -1,3 +1,5 @@
+import { haversineDistance } from "@/lib/operation";
+
 class Vertex {
     constructor(public name: string, public px: number, public py: number) {
     }
@@ -13,27 +15,22 @@ class Vertex {
       return Math.sqrt(dx ** 2 + dy ** 2);
     }
 
+    /**
+     * 
+     * @param vertex 
+     * @returns true if this name equals to vertex name
+     */
     public isEqual(vertex: Vertex): Boolean {
       return this.name == vertex.name
     }
 
-    private toRad(degree: number) {
-      var pi = Math.PI;
-      return degree * (pi / 180);
-    }
+    /**
+     * 
+     * @param vertex 
+     * @returns haversine distance between this and vertex in km
+     */
     public haversineDistanceWith(vertex: Vertex): number {
-      const R = 6371;
-      const c1Rad = { lat: this.toRad(this.px), lng: this.toRad(this.py) };
-      const c2Rad = { lat: this.toRad(vertex.px), lng: this.toRad(vertex.py) };
-    
-      const dlat = c1Rad.lat - c2Rad.lat;
-      const dlng = c1Rad.lng - c2Rad.lng;
-      let a =
-        Math.pow(Math.sin(dlat / 2), 2) +
-        Math.cos(c1Rad.lat) * Math.cos(c2Rad.lat) * Math.pow(Math.sin(dlng / 2), 2);
-      let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      let d = R * c;
-      return d;
+      return haversineDistance({lat: this.px, lng: this.py}, {lat: vertex.px, lng: vertex.py})
     }
   }
   
