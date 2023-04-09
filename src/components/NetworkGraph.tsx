@@ -68,8 +68,7 @@ function NetworkGraph({ graph }: { graph: Graph }) {
       });
 
       const adjVertexes = graph.getAdjVertexes(vertex.name);
-      adjVertexes.forEach((adjVertexName) => {
-        const adjVertex = graph.getVertexObj(adjVertexName)!;
+      adjVertexes.forEach((adjVertex) => {
         data.push({
           x0: [adjVertex.px],
           y0: [adjVertex.py],
@@ -100,8 +99,7 @@ function NetworkGraph({ graph }: { graph: Graph }) {
       });
 
       const adjVertexes = graph.getAdjVertexes(vertex.name);
-      adjVertexes.forEach((adjVertexName) => {
-        const adjVertex = graph.getVertexObj(adjVertexName)!;
+      adjVertexes.forEach((adjVertex) => {
         data.push({
           x: [(vertex.px + adjVertex.px) / 2],
           y: [(vertex.py + adjVertex.py) / 2],

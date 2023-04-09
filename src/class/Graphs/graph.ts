@@ -54,13 +54,20 @@ class Graph {
    * @param vertexName 
    * @returns all adjency vertex of vertex with name equals to vertexName
    */
-  public getAdjVertexes(vertexName: string) : string[] {
-    let adjVertexes = this._graph.get(vertexName)
-    if (adjVertexes != undefined) {
-      return adjVertexes;
-    } else {
-      return [];
-    }
+  public getAdjVertexes(vertexName: string) : Vertex[] {
+    let adjVertexesName = this._graph.get(vertexName)
+    let adjVertexes: Vertex[] = []
+    if (adjVertexesName != undefined) {
+      adjVertexesName.forEach((adjVertexName) => {
+        let vertex = this._graphObj.get(adjVertexName)
+        adjVertexes.push(vertex!)
+      })
+    } 
+    return adjVertexes
+  }
+
+  public isEmpty() {
+    return this._graph.size == 0;
   }
 
   /**
@@ -91,19 +98,23 @@ class Graph {
   public addEdge(vertex1: Vertex, vertex2: Vertex): void {
     // check if vertex1 exists
     if (this._graph.get(vertex1.name) == undefined) {
+      console.log("add vertex")
       this.addVertex(vertex1);
     }
 
     // check if vertex2 exists
     if (this._graph.get(vertex2.name) == undefined) {
+      console.log("add vertex")
       this.addVertex(vertex2);
     }
 
     if (!this._graph.get(vertex1.name)!.includes(vertex2.name)) {
+      console.log("add edge")
       this._graph.get(vertex1.name)!.push(vertex2.name);
     }
 
     if (!this._graph.get(vertex2.name)!.includes(vertex1.name)) {
+      console.log("add edge")
       this._graph.get(vertex2.name)!.push(vertex1.name);
     }
   }
