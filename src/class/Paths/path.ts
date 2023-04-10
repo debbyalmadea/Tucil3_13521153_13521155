@@ -29,13 +29,17 @@ class Path {
     return this._distance
   }
 
+  public get goal():Vertex {
+    return this._goal
+  }
+
   public get lastVertex(): Vertex {
     return this._path[this._path.length - 1];
   }
   
   public add(vertex: Vertex, isUCS : boolean): void {
         if (this._path.length > 0) {
-            this._cost += vertex.distanceWith(this.lastVertex);
+            this._cost += this.graph.getEdgeWeight(this.lastVertex, vertex);
             this._haversineCost += vertex.haversineDistanceWith(this.lastVertex)
             console.log(this.haversineCost)
         }

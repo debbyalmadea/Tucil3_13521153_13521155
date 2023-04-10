@@ -10,6 +10,7 @@ import {
   Map,
   marker,
   polyline,
+  popup,
 } from "leaflet";
 import { Graph } from "@/class/Graphs/graph";
 import FindingPath, { Algorithm } from "@/lib/algorithm";
@@ -58,8 +59,9 @@ const ShortestPathView = () => {
   const [algorithm, setAlgorithm] = useState<Algorithm>(Algorithm.UCS);
   const [map, setMap] = useState<Map | null>(null);
   const [mode, setMode] = useState<MapMode>(MapMode.BASIC);
-  const [appMode, setAppMode] = useState<AppMode>(AppMode.GRAPH);
+  const [appMode, setAppMode] = useState<AppMode>(AppMode.MAP);
   const [path, setPath] = useState<Path | null>(null);
+  const [readAsWeighted, setReadAsWeighted] = useState(true);
   // used in drawing edge on the map in DRAW mode
   // store vertex from mouse down event
   const [tempVertex, setTempVertex] = useState<Vertex | null>(null);
@@ -77,7 +79,9 @@ const ShortestPathView = () => {
 
       if (result != undefined) {
         if (result.path.length == 0) {
-          notifyError("Path not found!");
+          notifyError(
+            "Path not found from " + start.label + " to " + goal.label
+          );
         }
         setPath(result);
       }
@@ -117,9 +121,11 @@ const ShortestPathView = () => {
       reader.onload = () => {
         setFile(file);
         let content = reader.result as string;
-        const parser = new Parser();
         try {
-          let graph = parser.parse(content);
+          let graph = Parser.parse(
+            content,
+            readAsWeighted && appMode == AppMode.GRAPH
+          );
           setGraph(graph);
 
           /* set options */
@@ -144,9 +150,9 @@ const ShortestPathView = () => {
                     map,
                     [
                       [vertex.px, vertex.py],
-                      [adjVertex.px, adjVertex.py],
+                      [adjVertex.vertex.px, adjVertex.vertex.py],
                     ],
-                    (vertex.haversineDistanceWith(adjVertex) * 1000)
+                    (vertex.haversineDistanceWith(adjVertex.vertex) * 1000)
                       .toFixed(2)
                       .toString() + " m"
                   );
@@ -379,8 +385,14 @@ const ShortestPathView = () => {
       for (let i = 0; i < path.path.length - 1; i++) {
         let currVertex = path.path[i];
         let nextVertex = path.path[i + 1];
-
         if (map != null) {
+          if (i == 0) {
+            popup()
+              .setLatLng([currVertex.px, currVertex.py])
+              .setContent("Start")
+              .openOn(map)
+              .openPopup();
+          }
           drawLine(
             map,
             [
@@ -460,6 +472,20 @@ const ShortestPathView = () => {
               />
             </button>
             {file && <p className="mt-2">{file.name}</p>}
+            {appMode == AppMode.GRAPH && (
+              <div className="space-x-2 mt-2">
+                <input
+                  type="checkbox"
+                  id="weighted"
+                  onChange={(e) => {
+                    setReadAsWeighted(!readAsWeighted);
+                    reset();
+                  }}
+                  checked={readAsWeighted}
+                />
+                <label htmlFor="weighted">Weighted graph input</label>
+              </div>
+            )}
           </div>
 
           {appMode == AppMode.MAP && (

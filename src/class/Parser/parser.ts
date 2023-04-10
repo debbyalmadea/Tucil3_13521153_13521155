@@ -6,11 +6,11 @@ class ParserError extends Error {}
 export class Parser {
     /**
      * parse content of file, example can be seen in tests folder
-     * TODO: Input Validation
+     * 
      * @param filecontent content of the file, not the file name
      * @returns graph from the file's content
      */
-  parse(filecontent: string): Graph {
+  public static parse(filecontent: string, readAsWeightedGraph: boolean = false): Graph {
     const graph = new Graph();
 
     const splitLine = filecontent.split("\n");
@@ -36,9 +36,13 @@ export class Parser {
         const vertex1 = vertexes[r];
         const row = splitLine[r + vertexCount + 1].split(" ");
         for (let c = 0; c < vertexCount; c++) {
-          if (parseInt(row[c]) === 1) {
+          if (parseFloat(row[c]) > 0) {
             const vertex2 = vertexes[c];
-            graph.addEdge(vertex1, vertex2);
+            if (!readAsWeightedGraph) {
+              graph.addEdge(vertex1, vertex2);
+            } else {
+              graph.addEdge(vertex1, vertex2, parseFloat(row[c]));
+            }
           }
         }
       }

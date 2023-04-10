@@ -13,6 +13,7 @@ function GraphViewer({ graph, path }: { graph: Graph; path: Path | null }) {
         label: vertex.name,
         x: 50 * Math.random() * 10,
         y: 50 * Math.random() * 10,
+        color: "#7dd3fc",
       };
     });
   }, [graph]);
@@ -29,8 +30,11 @@ function GraphViewer({ graph, path }: { graph: Graph; path: Path | null }) {
     graph.getAdjVertexes(vertex).forEach((adjVertex) => {
       edges.push({
         from: vertex.name,
-        to: adjVertex.name,
-        label: vertex.distanceWith(adjVertex).toFixed(2).toString(),
+        to: adjVertex.vertex.name,
+        label: graph
+          .getEdgeWeight(vertex, adjVertex.vertex)
+          .toFixed(2)
+          .toString(),
       });
     });
   });
@@ -69,15 +73,19 @@ function GraphViewer({ graph, path }: { graph: Graph; path: Path | null }) {
     },
     height: "100%",
     width: "70vw",
-    nodes: {
-      color: "#7dd3fc",
-    },
     edges: {
       color: "#FFFFFF",
     },
   };
 
-  return <GraphVis graph={graphData} options={options} />;
+  return (
+    <div className="relative w-full h-full">
+      <p className="text-white absolute left-10 bottom-10">
+        {"> The position does not represent actual position of the vertexes"}
+      </p>
+      <GraphVis graph={graphData} options={options} />
+    </div>
+  );
 }
 
 export default GraphViewer;

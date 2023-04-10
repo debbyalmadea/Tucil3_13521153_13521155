@@ -6,7 +6,7 @@ interface AdjVertexInterface {
 }
 
 class Graph {
-  private _graph: Map<Vertex, Vertex[]> = new Map<Vertex, Vertex[]>();
+  private _graph: Map<Vertex, AdjVertexInterface[]> = new Map<Vertex, AdjVertexInterface[]>();
 
   /**
    * 
@@ -21,7 +21,7 @@ class Graph {
    * @param vertexName 
    * @returns all adjency vertex of vertex
    */
-  public getAdjVertexes(vertex: Vertex) : Vertex[]{
+  public getAdjVertexes(vertex: Vertex) : AdjVertexInterface[]{
     let adjVertexes =  this._graph.get(vertex)
     if (adjVertexes == undefined) {
       return [];
@@ -46,6 +46,20 @@ class Graph {
     return found;
   }
 
+  public isEdgeExist(vertex: Vertex, adjVertex: Vertex) {
+    let id = this.getAdjVertexes(vertex).findIndex((adj) => adj.vertex.isEqual(adjVertex))
+    return id > -1;
+  }
+
+  public getEdgeWeight(from: Vertex, to: Vertex) {
+    let id = this.getAdjVertexes(from).findIndex((adj) => adj.vertex.isEqual(to))
+    if (id == -1) {
+      return -1;
+    } else {
+      return this.getAdjVertexes(from)[id].weight
+    }
+  }
+
   /**
    * 
    * @param vertex 
@@ -65,7 +79,7 @@ class Graph {
    * @param vertex1 first vertex
    * @param vertex2 second vertex
    */
-  public addEdge(from: Vertex, to: Vertex): void {
+  public addEdge(from: Vertex, to: Vertex, weight?: number): void {
     // check if from exists
     if (this._graph.get(from) == undefined) {
       this.addVertex(from);
@@ -76,8 +90,8 @@ class Graph {
       this.addVertex(to);
     }
 
-    if (!this._graph.get(from)!.includes(to)) {
-      this._graph.get(from)!.push(to);
+    if (!this.isEdgeExist(from, to)) {
+      this._graph.get(from)!.push({vertex: to, weight: weight == undefined ? from.distanceWith(to) : weight});
     }
   }
 
@@ -94,7 +108,7 @@ class Graph {
     for (const vertex of vertexes) {
       result += vertex.name + ': ';
       for (const adjVertex of this._graph.get(vertex)!) {
-        result += adjVertex.name + ', ';
+        result += adjVertex.vertex.name + ', ';
       }
 
       result += '\n';
