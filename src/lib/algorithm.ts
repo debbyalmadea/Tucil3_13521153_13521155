@@ -67,8 +67,8 @@ class FindingPath{
                 // iterate the adjacent vertexes if not visited yet
                 if(adjVertexes.length > 0){
                    for(let i = 0; i < adjVertexes.length; i++){
-                        if (this._isVisited.get(adjVertexes[i]) == undefined){
-                            temp.add(adjVertexes[i], this._isUCS);
+                        if (this._isVisited.get(adjVertexes[i].vertex) == undefined){
+                            temp.add(adjVertexes[i].vertex, this._isUCS);
                             console.log("tambahin node: " + temp + " " + (temp.cost + temp.distance));
                             this.pqueue.push(temp);
                             temp = solution.copy();

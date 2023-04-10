@@ -22,7 +22,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="w-screen max-h-screen relative text-black bg-gradient-to-tl from-emerald-900 via-emerald-700 to-emerald-200 flex flex-row justify-between items-center">
+      <main className="w-screen h-screen relative text-black bg-gradient-to-tl from-emerald-900 via-emerald-700 to-emerald-200 flex flex-row justify-between items-center">
         <ShortestPathView />
       </main>
     </>
