@@ -1,7 +1,11 @@
 import { haversineDistance } from "@/lib/operation";
 
 class Vertex {
+    private static vertexCount = 0;
+    public id: number;
     constructor(public name: string, public px: number, public py: number) {
+      Vertex.vertexCount += 1;
+      this.id = Vertex.vertexCount;
     }
   
     /**

@@ -1,5 +1,10 @@
 import { Vertex } from "./vertex";
 
+interface AdjVertexInterface {
+  vertex: Vertex;
+  weight: number;
+}
+
 class Graph {
   private _graph: Map<Vertex, Vertex[]> = new Map<Vertex, Vertex[]>();
 

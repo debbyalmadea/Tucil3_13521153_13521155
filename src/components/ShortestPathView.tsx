@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer } from "react-leaflet";
 import {
@@ -21,10 +21,22 @@ import { Vertex } from "@/class/Graphs/vertex";
 import { Path } from "@/class/Paths/path";
 import { ToastContainer, toast } from "react-toastify";
 import Link from "next/link";
+import GraphViewer from "./GraphViewer";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faCircleNodes,
+  faMap,
+  faRotateRight,
+} from "@fortawesome/free-solid-svg-icons";
 
 enum MapMode {
   BASIC, // can't pick vertex from map, file input only
   DRAW,
+}
+
+enum AppMode {
+  GRAPH,
+  MAP,
 }
 
 interface OptionInterface {
@@ -46,6 +58,7 @@ const ShortestPathView = () => {
   const [algorithm, setAlgorithm] = useState<Algorithm>(Algorithm.UCS);
   const [map, setMap] = useState<Map | null>(null);
   const [mode, setMode] = useState<MapMode>(MapMode.BASIC);
+  const [appMode, setAppMode] = useState<AppMode>(AppMode.GRAPH);
   const [path, setPath] = useState<Path | null>(null);
   // used in drawing edge on the map in DRAW mode
   // store vertex from mouse down event
@@ -116,29 +129,30 @@ const ShortestPathView = () => {
           });
           setOptions(options);
 
-          /* draw graphs on map */
-          if (map != null) {
-            const vertexes = graph.getVertexes();
-            map.flyTo([vertexes[0].px, vertexes[0].py]);
-            vertexes.forEach((vertex) => {
-              // draw vertex
-              drawMarker(map, vertex.px, vertex.py, vertex.name);
+          if (appMode == AppMode.MAP) {
+            if (map != null) {
+              const vertexes = graph.getVertexes();
+              map.flyTo([vertexes[0].px, vertexes[0].py]);
+              vertexes.forEach((vertex) => {
+                // draw vertex
+                drawMarker(map, vertex.px, vertex.py, vertex.name);
 
-              // search for its adjency vertexes
-              graph.getAdjVertexes(vertex).forEach((adjVertex) => {
-                // draw edge
-                drawLine(
-                  map,
-                  [
-                    [vertex.px, vertex.py],
-                    [adjVertex.px, adjVertex.py],
-                  ],
-                  (vertex.haversineDistanceWith(adjVertex) * 1000)
-                    .toFixed(2)
-                    .toString() + " m"
-                );
+                // search for its adjency vertexes
+                graph.getAdjVertexes(vertex).forEach((adjVertex) => {
+                  // draw edge
+                  drawLine(
+                    map,
+                    [
+                      [vertex.px, vertex.py],
+                      [adjVertex.px, adjVertex.py],
+                    ],
+                    (vertex.haversineDistanceWith(adjVertex) * 1000)
+                      .toFixed(2)
+                      .toString() + " m"
+                  );
+                });
               });
-            });
+            }
           }
         } catch (e) {
           console.log("Invalid input");
@@ -394,33 +408,38 @@ const ShortestPathView = () => {
   return (
     <>
       <ToastContainer position="top-center" />
-      <MapContainer
-        center={
-          graph.isEmpty()
-            ? defaultPosition
-            : [graph.getVertexes()[0].px, graph.getVertexes()[0].py]
-        }
-        zoom={50}
-        scrollWheelZoom={false}
-        style={{
-          width: "70vw",
-          height: "100vh",
-        }}
-      >
-        <MapEventHandler
-          onMapLoad={onMapLoad}
-          onMapDblclick={onMapDoubleClick}
-          onMouseDown={onMouseDown}
-          onMouseUp={onMouseUp}
-        />
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-      </MapContainer>
 
-      <div className="h-full flex flex-grow flex-shrink-0 justify-center items-center px-8 py-16">
-        <div className="w-[400px] h-[calc(100%-80px)] flex items-center flex-col space-y-4">
+      {appMode == AppMode.MAP && (
+        <MapContainer
+          center={
+            graph.isEmpty()
+              ? defaultPosition
+              : [graph.getVertexes()[0].px, graph.getVertexes()[0].py]
+          }
+          zoom={50}
+          scrollWheelZoom={false}
+          style={{
+            width: "70vw",
+            height: "100vh",
+          }}
+        >
+          <MapEventHandler
+            onMapLoad={onMapLoad}
+            onMapDblclick={onMapDoubleClick}
+            onMouseDown={onMouseDown}
+            onMouseUp={onMouseUp}
+          />
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+        </MapContainer>
+      )}
+
+      {appMode == AppMode.GRAPH && <GraphViewer graph={graph} path={path} />}
+
+      <div className="h-full flex flex-grow flex-shrink-0 justify-center items-center px-8 py-8">
+        <div className="w-[400px] h-full flex items-center flex-col space-y-4">
           <div className="w-full bg-white px-12 py-8 rounded-xl">
             <h1 className="text-2xl font-bold mb-4 text-center">
               Shortest Path Finder
@@ -443,7 +462,36 @@ const ShortestPathView = () => {
             {file && <p className="mt-2">{file.name}</p>}
           </div>
 
-          <div className="w-full h-[50vh] overflow-scroll	 bg-white px-12 py-10 rounded-xl divide-y space-y-4">
+          {appMode == AppMode.MAP && (
+            <div className="flex flex-row space-x-4 w-full">
+              <button
+                className={`w-full py-4 font-bold hover:rounded-3xl flex-grow ${
+                  mode == MapMode.BASIC
+                    ? "rounded-2xl bg-white hover:bg-emerald-200"
+                    : "rounded-3xl bg-emerald-600 text-white border-4 border-emerald-900"
+                }`}
+                onClick={(e) => {
+                  if (mode == MapMode.BASIC) {
+                    if (file != null) reset();
+                    setMode(MapMode.DRAW);
+                  } else {
+                    if (map != null) map.dragging.enable();
+                    setMode(MapMode.BASIC);
+                  }
+                }}
+              >
+                CREATE FROM MAP
+              </button>
+              <button
+                className="bg-white rounded-2xl w-24 text-xl hover:bg-emerald-200 hover:rounded-3xl"
+                onClick={reset}
+              >
+                <FontAwesomeIcon icon={faRotateRight} />
+              </button>
+            </div>
+          )}
+
+          <div className="w-full h-full overflow-scroll	 bg-white px-12 py-10 rounded-xl divide-y space-y-4">
             <div className="w-full">
               <h2 className="mb-2 font-bold">Start</h2>
               <Select
@@ -459,6 +507,7 @@ const ShortestPathView = () => {
                 }}
                 onChange={setStart}
                 isDisabled={options.length == 0}
+                maxMenuHeight={200}
               />
               <h2 className="mt-4 mb-2 font-bold">Goal</h2>
               <Select
@@ -472,6 +521,7 @@ const ShortestPathView = () => {
                 }}
                 onChange={setGoal}
                 isDisabled={options.length == 0}
+                maxMenuHeight={200}
               />
               <div className="flex flex-col mt-4 ">
                 <h2 className="mb-2 font-bold">Select Algorithm</h2>
@@ -523,42 +573,29 @@ const ShortestPathView = () => {
           </div>
 
           <button
-            className={`w-full py-4 font-bold hover:rounded-3xl ${
-              mode == MapMode.BASIC
-                ? "rounded-2xl bg-white hover:bg-emerald-200"
-                : "rounded-3xl bg-emerald-600 text-white border-4 border-emerald-900"
-            }`}
+            className="w-full bg-white rounded-xl py-4 hover:bg-emerald-200 hover:rounded-2xl font-bold"
             onClick={(e) => {
-              if (mode == MapMode.BASIC) {
-                if (file != null) reset();
-                setMode(MapMode.DRAW);
+              if (appMode == AppMode.MAP) {
+                setAppMode(AppMode.GRAPH);
+                setMap(null);
               } else {
-                if (map != null) map.dragging.enable();
-                setMode(MapMode.BASIC);
+                setAppMode(AppMode.MAP);
               }
             }}
           >
-            CREATE FROM MAP
+            <FontAwesomeIcon
+              icon={appMode == AppMode.MAP ? faCircleNodes : faMap}
+            />
+            {appMode == AppMode.MAP ? " GRAPH MODE" : " MAP MODE"}
           </button>
-
-          <div className="w-full flex flex-row space-x-4">
-            <button
-              className="w-full bg-white rounded-2xl py-4 hover:bg-emerald-200 hover:rounded-3xl font-bold"
-              onClick={(e) => {
-                reset();
-              }}
-            >
-              RESET
+          <Link
+            href={"https://github.com/debbyalmadea/Tucil3_13521153_13521155"}
+            className="w-full"
+          >
+            <button className="w-full bg-white rounded-xl py-4 hover:bg-emerald-200 hover:rounded-2xl font-bold">
+              REPOSITORY
             </button>
-            <Link
-              href={"https://github.com/debbyalmadea/Tucil3_13521153_13521155"}
-              className="w-full"
-            >
-              <button className="w-full bg-white rounded-xl py-4 hover:bg-emerald-200 hover:rounded-2xl font-bold">
-                REPOSITORY
-              </button>
-            </Link>
-          </div>
+          </Link>
         </div>
       </div>
     </>
