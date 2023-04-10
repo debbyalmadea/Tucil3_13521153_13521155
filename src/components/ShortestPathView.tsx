@@ -13,7 +13,7 @@ import {
 } from "leaflet";
 import { Graph } from "@/class/Graphs/graph";
 import FindingPath, { Algorithm } from "@/lib/algorithm";
-import Select, { SingleValue } from "react-select";
+import Select from "react-select";
 import { Parser } from "@/class/Parser/parser";
 import MapEventHandler from "./MapEventHandler";
 import { haversineDistance } from "@/lib/operation";
@@ -28,7 +28,7 @@ enum MapMode {
 }
 
 interface OptionInterface {
-  value: string;
+  value: Vertex;
   label: string;
 }
 
@@ -79,28 +79,6 @@ const ShortestPathView = () => {
   }, [path]);
 
   /**
-   * handle change in start vertex selection
-   *
-   * @param newValue
-   */
-  function onStartSelectChange(newValue: SingleValue<OptionInterface>) {
-    if (newValue != undefined && newValue != goal) {
-      setStart(newValue);
-    }
-  }
-
-  /**
-   * handle change in goal vertex selection
-   *
-   * @param newValue
-   */
-  function onGoalSelectChange(newValue: SingleValue<OptionInterface>) {
-    if (newValue != undefined && newValue != start) {
-      setGoal(newValue);
-    }
-  }
-
-  /**
    * handle upload file and read file
    *
    * @param input file input
@@ -133,8 +111,8 @@ const ShortestPathView = () => {
 
           /* set options */
           let options: OptionInterface[] = [];
-          graph.getGraphKeys().forEach((key) => {
-            options.push({ value: key, label: key });
+          graph.getVertexes().forEach((vertex) => {
+            options.push({ value: vertex, label: vertex.name });
           });
           setOptions(options);
 
@@ -147,7 +125,7 @@ const ShortestPathView = () => {
               drawMarker(map, vertex.px, vertex.py, vertex.name);
 
               // search for its adjency vertexes
-              graph.getAdjVertexes(vertex.name).forEach((adjVertex) => {
+              graph.getAdjVertexes(vertex).forEach((adjVertex) => {
                 // draw edge
                 drawLine(
                   map,
@@ -162,10 +140,16 @@ const ShortestPathView = () => {
               });
             });
           }
-        } catch {
+        } catch (e) {
           console.log("Invalid input");
           setFile(null);
-          notifyError("Invalid file input. Check repository for more info.");
+          if (e instanceof Error) {
+            notifyError(e.message);
+          } else {
+            notifyError(
+              "Input file possibly have incorrect format. Check repository for more info."
+            );
+          }
         }
       };
 
@@ -195,15 +179,16 @@ const ShortestPathView = () => {
     if (mode == MapMode.DRAW) {
       // if vertex don't exists in position lat, lng
       if (getVertex(lat, lng) == null) {
-        let vertexName = (graph.getGraphKeys().length + 1).toString();
+        let vertexName = (graph.getVertexes().length + 1).toString();
         drawMarker(map, lat, lng, vertexName);
-        graph.addVertex(new Vertex(vertexName, lat, lng));
+        let newVertex = new Vertex(vertexName, lat, lng);
+        graph.addVertex(newVertex);
 
         // add to options
         let newOptions = [
           ...options,
           {
-            value: vertexName,
+            value: newVertex,
             label: vertexName,
           },
         ];
@@ -332,7 +317,7 @@ const ShortestPathView = () => {
    * @param label will be shown when hovering
    */
   function drawMarker(map: Map, lat: number, lng: number, label: string) {
-    let newVertex = marker(
+    let newMarker = marker(
       { lat: lat, lng: lng },
       {
         icon: new Icon({
@@ -343,8 +328,8 @@ const ShortestPathView = () => {
         title: label,
       }
     ).addTo(map);
-    newVertex.bindTooltip(label);
-    layers.push(newVertex);
+    newMarker.bindTooltip(label);
+    layers.push(newMarker);
   }
 
   /**
@@ -378,8 +363,8 @@ const ShortestPathView = () => {
   function drawPath(color: string = "#ef4444") {
     if (path != null && !graph.isEmpty()) {
       for (let i = 0; i < path.path.length - 1; i++) {
-        let currVertex = graph.getVertexObj(path.path[i])!;
-        let nextVertex = graph.getVertexObj(path.path[i + 1])!;
+        let currVertex = path.path[i];
+        let nextVertex = path.path[i + 1];
 
         if (map != null) {
           drawLine(
@@ -472,7 +457,7 @@ const ShortestPathView = () => {
                     borderColor: state.isFocused ? "#22c55e" : "lightgray",
                   }),
                 }}
-                onChange={onStartSelectChange}
+                onChange={setStart}
                 isDisabled={options.length == 0}
               />
               <h2 className="mt-4 mb-2 font-bold">Goal</h2>
@@ -485,7 +470,7 @@ const ShortestPathView = () => {
                     borderRadius: "10px",
                   }),
                 }}
-                onChange={onGoalSelectChange}
+                onChange={setGoal}
                 isDisabled={options.length == 0}
               />
               <div className="flex flex-col mt-4 ">

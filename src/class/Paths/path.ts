@@ -3,14 +3,14 @@ import { Vertex } from "../Graphs/vertex";
 
 
 class Path {
-  private _path: string[] = [];
+  private _path: Vertex[] = [];
   private _cost: number = 0;
   private _distance: number= 0;
   private _haversineCost: number = 0;
 
-  constructor(private graph: Graph, private _goalName : string) {}
+  constructor(private graph: Graph, private _goal : Vertex) {}
 
-  public get path(): string[] {
+  public get path(): Vertex[] {
     return this._path;
   }
 
@@ -29,32 +29,27 @@ class Path {
     return this._distance
   }
 
-  public get lastVertex(): string {
+  public get lastVertex(): Vertex {
     return this._path[this._path.length - 1];
   }
   
-  public add(vertexName: string, isUCS : boolean): void {
-    const vertexObj = this.graph.getVertexObj(vertexName);
-    if (vertexObj != null) {
-        let lastVertexObj: Vertex | null = null;
+  public add(vertex: Vertex, isUCS : boolean): void {
         if (this._path.length > 0) {
-            lastVertexObj = this.graph.getVertexObj(this.lastVertex);
-            this._cost += vertexObj.distanceWith(lastVertexObj!);
-            this._haversineCost += vertexObj.haversineDistanceWith(lastVertexObj!)
+            this._cost += vertex.distanceWith(this.lastVertex);
+            this._haversineCost += vertex.haversineDistanceWith(this.lastVertex)
             console.log(this.haversineCost)
         }
         if(isUCS){
             this._distance = 0;
         }
         else{
-            this._distance = vertexObj.distanceWith(this.graph.getVertexObj(this._goalName)!);
+            this._distance = vertex.distanceWith(this._goal);
         }
-        this._path.push(vertexName);
-    }
+        this._path.push(vertex);
   }
 
   public copy(): Path {
-    const copyPath = new Path(this.graph, this._goalName);
+    const copyPath = new Path(this.graph, this._goal);
     copyPath._cost = this.cost;
     copyPath._distance = this.distance;
     copyPath._path = [...this._path];
@@ -65,7 +60,7 @@ class Path {
   public toString(): string {
     let result = '';
     for (let i = 0; i < this._path.length; i++) {
-      result += this._path[i];
+      result += this._path[i].name;
       if (i < this._path.length - 1) {
         result += ' - ';
       }

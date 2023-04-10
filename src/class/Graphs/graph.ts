@@ -1,75 +1,58 @@
 import { Vertex } from "./vertex";
 
 class Graph {
-  private _graphObj: Map<string, Vertex> = new Map<string, Vertex>();
-  private _graph: Map<string, string[]> = new Map<string, string[]>();
-
-
-  /**
-   * 
-   * @returns keys of graph, or in this case the vertex's name
-   */
-  public getGraphKeys(): string[] {
-    return Array.from(this._graph.keys())
-  }
+  private _graph: Map<Vertex, Vertex[]> = new Map<Vertex, Vertex[]>();
 
   /**
    * 
    * @returns array of vertex
    */
   public getVertexes(): Vertex[] {
-    let result: Vertex[] = []
-    const vertexesKey = Array.from(this._graphObj.keys())
-    vertexesKey.forEach((key) => {
-      result.push(this._graphObj.get(key)!)
-    })
-    return result
+    return Array.from(this._graph.keys())
   }
 
   /**
    * 
    * @param vertexName 
-   * @returns vertex with name equals to vertexName
+   * @returns all adjency vertex of vertex
    */
-  public getVertexObj(vertexName: string): Vertex | null {
-    let vertexObj = this._graphObj.get(vertexName)
-    if (vertexObj != undefined) {
-      return vertexObj;
+  public getAdjVertexes(vertex: Vertex) : Vertex[]{
+    let adjVertexes =  this._graph.get(vertex)
+    if (adjVertexes == undefined) {
+      return [];
     } else {
-      return null;
+      return adjVertexes;
     }
-  } 
-
-  /**
-   * 
-   * @param vertexName 
-   * @returns all adjency vertex of vertex with name equals to vertexName
-   */
-  public getAdjVertexes(vertexName: string) : Vertex[] {
-    let adjVertexesName = this._graph.get(vertexName)
-    let adjVertexes: Vertex[] = []
-    if (adjVertexesName != undefined) {
-      adjVertexesName.forEach((adjVertexName) => {
-        let vertex = this._graphObj.get(adjVertexName)
-        adjVertexes.push(vertex!)
-      })
-    } 
-    return adjVertexes
   }
 
   public isEmpty() {
     return this._graph.size == 0;
   }
 
+  public isNameExist(name: string) {
+    let found = false;
+    Array.from(this._graph.keys()).forEach((vertex) => {
+      if (vertex.name == name) {
+        console.log(vertex.name, name)
+        found = true;
+      }
+    })
+
+    return found;
+  }
+
   /**
    * 
    * @param vertex 
+   * @returns 1 if successfully added, 0 if failed (duplicate name)
    */
-  public addVertex(vertex: Vertex): void {
-    if (!(vertex.name in this._graph)) {
-      this._graphObj.set(vertex.name, vertex)
-      this._graph.set(vertex.name, [])
+  public addVertex(vertex: Vertex): number {
+    if (this._graph.get(vertex) == undefined && !this.isNameExist(vertex.name)) {
+      this._graph.set(vertex, [])
+      return 1;
     }
+
+    return 0;
   }
 
   /**
@@ -77,23 +60,19 @@ class Graph {
    * @param vertex1 first vertex
    * @param vertex2 second vertex
    */
-  public addEdge(vertex1: Vertex, vertex2: Vertex): void {
-    // check if vertex1 exists
-    if (this._graph.get(vertex1.name) == undefined) {
-      this.addVertex(vertex1);
+  public addEdge(from: Vertex, to: Vertex): void {
+    // check if from exists
+    if (this._graph.get(from) == undefined) {
+      this.addVertex(from);
     }
 
-    // check if vertex2 exists
-    if (this._graph.get(vertex2.name) == undefined) {
-      this.addVertex(vertex2);
+    // check if to exists
+    if (this._graph.get(to) == undefined) {
+      this.addVertex(to);
     }
 
-    if (!this._graph.get(vertex1.name)!.includes(vertex2.name)) {
-      this._graph.get(vertex1.name)!.push(vertex2.name);
-    }
-
-    if (!this._graph.get(vertex2.name)!.includes(vertex1.name)) {
-      this._graph.get(vertex2.name)!.push(vertex1.name);
+    if (!this._graph.get(from)!.includes(to)) {
+      this._graph.get(from)!.push(to);
     }
   }
 
@@ -101,16 +80,16 @@ class Graph {
    * 
    * @returns string equivalent of graphs, shows information from graphs
    * format:
-   * VertexName: VertexAdjName - VertexAdjName
+   * VertexName: VertexAdjName, VertexAdjName, ..
    * etc..
    */
   public toString(): string {
     let result = '';
     const vertexes = Array.from(this._graph.keys())
     for (const vertex of vertexes) {
-      result += vertex + ': ';
+      result += vertex.name + ': ';
       for (const adjVertex of this._graph.get(vertex)!) {
-        result += adjVertex + ', ';
+        result += adjVertex.name + ', ';
       }
 
       result += '\n';
