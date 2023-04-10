@@ -28,7 +28,7 @@ enum MapMode {
 }
 
 interface OptionInterface {
-  value: string;
+  value: Vertex;
   label: string;
 }
 
@@ -111,8 +111,8 @@ const ShortestPathView = () => {
 
           /* set options */
           let options: OptionInterface[] = [];
-          graph.getGraphKeys().forEach((key) => {
-            options.push({ value: key, label: key });
+          graph.getVertexes().forEach((vertex) => {
+            options.push({ value: vertex, label: vertex.name });
           });
           setOptions(options);
 
@@ -125,7 +125,7 @@ const ShortestPathView = () => {
               drawMarker(map, vertex.px, vertex.py, vertex.name);
 
               // search for its adjency vertexes
-              graph.getAdjVertexes(vertex.name).forEach((adjVertex) => {
+              graph.getAdjVertexes(vertex).forEach((adjVertex) => {
                 // draw edge
                 drawLine(
                   map,
@@ -179,15 +179,16 @@ const ShortestPathView = () => {
     if (mode == MapMode.DRAW) {
       // if vertex don't exists in position lat, lng
       if (getVertex(lat, lng) == null) {
-        let vertexName = (graph.getGraphKeys().length + 1).toString();
+        let vertexName = (graph.getVertexes().length + 1).toString();
         drawMarker(map, lat, lng, vertexName);
-        graph.addVertex(new Vertex(vertexName, lat, lng));
+        let newVertex = new Vertex(vertexName, lat, lng);
+        graph.addVertex(newVertex);
 
         // add to options
         let newOptions = [
           ...options,
           {
-            value: vertexName,
+            value: newVertex,
             label: vertexName,
           },
         ];
@@ -316,7 +317,7 @@ const ShortestPathView = () => {
    * @param label will be shown when hovering
    */
   function drawMarker(map: Map, lat: number, lng: number, label: string) {
-    let newVertex = marker(
+    let newMarker = marker(
       { lat: lat, lng: lng },
       {
         icon: new Icon({
@@ -327,8 +328,8 @@ const ShortestPathView = () => {
         title: label,
       }
     ).addTo(map);
-    newVertex.bindTooltip(label);
-    layers.push(newVertex);
+    newMarker.bindTooltip(label);
+    layers.push(newMarker);
   }
 
   /**
@@ -362,8 +363,8 @@ const ShortestPathView = () => {
   function drawPath(color: string = "#ef4444") {
     if (path != null && !graph.isEmpty()) {
       for (let i = 0; i < path.path.length - 1; i++) {
-        let currVertex = graph.getVertexObj(path.path[i])!;
-        let nextVertex = graph.getVertexObj(path.path[i + 1])!;
+        let currVertex = path.path[i];
+        let nextVertex = path.path[i + 1];
 
         if (map != null) {
           drawLine(
