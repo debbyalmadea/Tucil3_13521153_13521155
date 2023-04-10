@@ -65,11 +65,15 @@ class Graph {
    * 
    * @param vertex 
    */
-  public addVertex(vertex: Vertex): void {
-    if (!(vertex.name in this._graph)) {
+  public addVertex(vertex: Vertex): number {
+    if (this.getVertexObj(vertex.name) == null) {
       this._graphObj.set(vertex.name, vertex)
       this._graph.set(vertex.name, [])
+
+      return 1;
     }
+
+    return 0;
   }
 
   /**
@@ -77,24 +81,24 @@ class Graph {
    * @param vertex1 first vertex
    * @param vertex2 second vertex
    */
-  public addEdge(vertex1: Vertex, vertex2: Vertex): void {
-    // check if vertex1 exists
-    if (this._graph.get(vertex1.name) == undefined) {
-      this.addVertex(vertex1);
+  public addEdge(from: Vertex, to: Vertex): void {
+    // check if from exists
+    if (this._graph.get(from.name) == undefined) {
+      this.addVertex(from);
     }
 
-    // check if vertex2 exists
-    if (this._graph.get(vertex2.name) == undefined) {
-      this.addVertex(vertex2);
+    // check if to exists
+    if (this._graph.get(to.name) == undefined) {
+      this.addVertex(to);
     }
 
-    if (!this._graph.get(vertex1.name)!.includes(vertex2.name)) {
-      this._graph.get(vertex1.name)!.push(vertex2.name);
+    if (!this._graph.get(from.name)!.includes(to.name)) {
+      this._graph.get(from.name)!.push(to.name);
     }
 
-    if (!this._graph.get(vertex2.name)!.includes(vertex1.name)) {
-      this._graph.get(vertex2.name)!.push(vertex1.name);
-    }
+    // if (!this._graph.get(to.name)!.includes(from.name)) {
+    //   this._graph.get(to.name)!.push(from.name);
+    // }
   }
 
   /**

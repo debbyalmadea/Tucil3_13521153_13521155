@@ -1,6 +1,8 @@
 import { Graph } from "../Graphs/graph";
 import { Vertex } from "../Graphs/vertex";
 
+class ParserError extends Error {}
+
 export class Parser {
     /**
      * parse content of file, example can be seen in tests folder
@@ -24,7 +26,9 @@ export class Parser {
           parseFloat(splitWord[2])
         );
         vertexes.push(vertex);
-        graph.addVertex(vertex);
+        if (graph.addVertex(vertex) == 0) {
+          throw new ParserError("Duplicate vertex name " + vertex.name)
+        }
       }
   
       // read adjacency matrix
@@ -40,8 +44,13 @@ export class Parser {
       }
   
       return graph;
-    } catch {
-      throw "Invalid file input"
+    } catch(e) {
+      if (e instanceof ParserError) {
+        console.log(e.message)
+        throw e
+      } else {
+        throw new Error("Invalid file input. Check repository for more info.")
+      }
     }
   }
 }

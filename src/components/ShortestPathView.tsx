@@ -13,7 +13,7 @@ import {
 } from "leaflet";
 import { Graph } from "@/class/Graphs/graph";
 import FindingPath, { Algorithm } from "@/lib/algorithm";
-import Select, { SingleValue } from "react-select";
+import Select from "react-select";
 import { Parser } from "@/class/Parser/parser";
 import MapEventHandler from "./MapEventHandler";
 import { haversineDistance } from "@/lib/operation";
@@ -79,28 +79,6 @@ const ShortestPathView = () => {
   }, [path]);
 
   /**
-   * handle change in start vertex selection
-   *
-   * @param newValue
-   */
-  function onStartSelectChange(newValue: SingleValue<OptionInterface>) {
-    if (newValue != undefined && newValue != goal) {
-      setStart(newValue);
-    }
-  }
-
-  /**
-   * handle change in goal vertex selection
-   *
-   * @param newValue
-   */
-  function onGoalSelectChange(newValue: SingleValue<OptionInterface>) {
-    if (newValue != undefined && newValue != start) {
-      setGoal(newValue);
-    }
-  }
-
-  /**
    * handle upload file and read file
    *
    * @param input file input
@@ -162,10 +140,16 @@ const ShortestPathView = () => {
               });
             });
           }
-        } catch {
+        } catch (e) {
           console.log("Invalid input");
           setFile(null);
-          notifyError("Invalid file input. Check repository for more info.");
+          if (e instanceof Error) {
+            notifyError(e.message);
+          } else {
+            notifyError(
+              "Input file possibly have incorrect format. Check repository for more info."
+            );
+          }
         }
       };
 
@@ -472,7 +456,7 @@ const ShortestPathView = () => {
                     borderColor: state.isFocused ? "#22c55e" : "lightgray",
                   }),
                 }}
-                onChange={onStartSelectChange}
+                onChange={setStart}
                 isDisabled={options.length == 0}
               />
               <h2 className="mt-4 mb-2 font-bold">Goal</h2>
@@ -485,7 +469,7 @@ const ShortestPathView = () => {
                     borderRadius: "10px",
                   }),
                 }}
-                onChange={onGoalSelectChange}
+                onChange={setGoal}
                 isDisabled={options.length == 0}
               />
               <div className="flex flex-col mt-4 ">
