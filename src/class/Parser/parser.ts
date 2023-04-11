@@ -20,10 +20,16 @@ export class Parser {
       const vertexes: Vertex[] = [];
       for (let i = 1; i < vertexCount + 1; i++) {
         const splitWord = splitLine[i].split(" ");
+        let px = 0;
+        let py = 0;
+        if (!readAsWeightedGraph) {
+          px = parseFloat(splitWord[1]);
+          py = parseFloat(splitWord[2])
+        }
         const vertex = new Vertex(
           splitWord[0],
-          parseFloat(splitWord[1]),
-          parseFloat(splitWord[2])
+          px,
+          py
         );
         vertexes.push(vertex);
         if (graph.addVertex(vertex) == 0) {

@@ -30,10 +30,19 @@ class Graph {
     }
   }
 
+  /**
+   * 
+   * @returns true if graph is empty
+   */
   public isEmpty() {
     return this._graph.size == 0;
   }
 
+  /**
+   * 
+   * @param name 
+   * @returns true if vertex with name "name" exist 
+   */
   public isNameExist(name: string) {
     let found = false;
     Array.from(this._graph.keys()).forEach((vertex) => {
@@ -46,11 +55,23 @@ class Graph {
     return found;
   }
 
-  public isEdgeExist(vertex: Vertex, adjVertex: Vertex) {
-    let id = this.getAdjVertexes(vertex).findIndex((adj) => adj.vertex.isEqual(adjVertex))
+  /**
+   * 
+   * @param from 
+   * @param to 
+   * @returns true if edge from "from" to "to" exist
+   */
+  public isEdgeExist(from: Vertex, to: Vertex) {
+    let id = this.getAdjVertexes(from).findIndex((adj) => adj.vertex.isEqual(to))
     return id > -1;
   }
 
+  /**
+   * 
+   * @param from 
+   * @param to 
+   * @returns weight of the edge
+   */
   public getEdgeWeight(from: Vertex, to: Vertex) {
     let id = this.getAdjVertexes(from).findIndex((adj) => adj.vertex.isEqual(to))
     if (id == -1) {
@@ -78,8 +99,9 @@ class Graph {
    * 
    * @param vertex1 first vertex
    * @param vertex2 second vertex
+   * @returns 1 if successfully added, 0 if failed (duplicate vertex)
    */
-  public addEdge(from: Vertex, to: Vertex, weight?: number): void {
+  public addEdge(from: Vertex, to: Vertex, weight?: number): number {
     // check if from exists
     if (this._graph.get(from) == undefined) {
       this.addVertex(from);
@@ -91,8 +113,12 @@ class Graph {
     }
 
     if (!this.isEdgeExist(from, to)) {
+      console.log(from, to)
       this._graph.get(from)!.push({vertex: to, weight: weight == undefined ? from.distanceWith(to) : weight});
+      return 1;
     }
+
+    return 0;
   }
 
   /**
