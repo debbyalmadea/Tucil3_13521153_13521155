@@ -22,10 +22,8 @@ export class Parser {
         const splitWord = splitLine[i].split(" ");
         let px = 0;
         let py = 0;
-        if (!readAsWeightedGraph) {
-          px = parseFloat(splitWord[1]);
-          py = parseFloat(splitWord[2])
-        }
+        px = parseFloat(splitWord[1]);
+        py = parseFloat(splitWord[2]);
         const vertex = new Vertex(
           splitWord[0],
           px,

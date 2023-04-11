@@ -113,7 +113,6 @@ class Graph {
     }
 
     if (!this.isEdgeExist(from, to)) {
-      console.log(from, to)
       this._graph.get(from)!.push({vertex: to, weight: weight == undefined ? from.distanceWith(to) : weight});
       return 1;
     }
@@ -132,12 +131,11 @@ class Graph {
     let result = '';
     const vertexes = Array.from(this._graph.keys())
     for (const vertex of vertexes) {
-      result += vertex.name + ': ';
       for (const adjVertex of this._graph.get(vertex)!) {
-        result += adjVertex.vertex.name + ', ';
+        result += vertex.name + ' - ';
+        result += adjVertex.vertex.name + ': ' + adjVertex.weight +" / " + vertex.haversineDistanceWith(adjVertex.vertex) * 1000 + " m";
+        result += '\n';
       }
-
-      result += '\n';
     }
 
     return result;

@@ -25,11 +25,13 @@ function MapViewer({
   path,
   addOption,
   drawMode = false,
+  directed = false,
 }: {
   graph: Graph;
   path: Path | null;
   addOption: (option: { value: Vertex; label: string }) => void;
   drawMode: boolean;
+  directed: boolean;
 }) {
   const defaultPosition: LatLngTuple = [-6.8915, 107.6107];
   const [map, setMap] = useState<Map | null>(null);
@@ -40,11 +42,9 @@ function MapViewer({
   // eslint-disable-next-line
   useMemo(() => drawGraph(), [graph]);
   useEffect(() => {
-    console.log(pathLayers);
     if (map != null) {
       pathLayers.forEach((layer) => {
         layer.removeFrom(map);
-        console.log("remove", layer);
       });
     }
     drawPath();
@@ -156,19 +156,22 @@ function MapViewer({
        */
       if (vertex != null && tempVertex != null && !tempVertex.isEqual(vertex)) {
         console.log(tempVertex, vertex);
-        if (
-          graph.addEdge(tempVertex, vertex) &&
-          graph.addEdge(vertex, tempVertex)
-        ) {
+        if (graph.addEdge(tempVertex, vertex)) {
+          if (!directed) {
+            graph.addEdge(vertex, tempVertex);
+          }
           drawLine(
             map,
             [
               [vertex.px, vertex.py],
               [tempVertex.px, tempVertex.py],
             ],
-            (vertex.haversineDistanceWith(tempVertex) * 1000)
-              .toFixed(2)
-              .toString() + " m"
+            graph.getEdgeWeight(tempVertex, vertex).toFixed(2).toString() +
+              " / " +
+              (vertex.haversineDistanceWith(tempVertex) * 1000)
+                .toFixed(2)
+                .toString() +
+              " m"
           );
         }
         setTempVertex(null);
@@ -232,9 +235,10 @@ function MapViewer({
     opacity: number = 0.5,
     isPath: boolean = false
   ) {
-    let newLine = polyline(positions, { color: color, opacity: opacity }).addTo(
-      map
-    );
+    let newLine = polyline(positions, {
+      color: color,
+      opacity: opacity,
+    }).addTo(map);
     newLine.bindTooltip(label);
     if (!isPath) layers.push(newLine);
     else pathLayers.push(newLine);
@@ -277,6 +281,9 @@ function MapViewer({
     }
   }
 
+  /**
+   * draw graph on map
+   */
   function drawGraph() {
     reset();
     if (map != null && !graph.isEmpty()) {
@@ -295,9 +302,12 @@ function MapViewer({
               [vertex.px, vertex.py],
               [adjVertex.vertex.px, adjVertex.vertex.py],
             ],
-            (vertex.haversineDistanceWith(adjVertex.vertex) * 1000)
-              .toFixed(2)
-              .toString() + " m"
+            adjVertex.weight.toFixed(2).toString() +
+              " / " +
+              (vertex.haversineDistanceWith(adjVertex.vertex) * 1000)
+                .toFixed(2)
+                .toString() +
+              " m"
           );
         });
       });

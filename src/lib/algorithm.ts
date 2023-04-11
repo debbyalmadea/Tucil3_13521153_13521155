@@ -31,7 +31,6 @@ class FindingPath{
     }
 
     public useUCSA(map : Graph, start: Vertex, finish : Vertex){
-        console.log("HEYYYYYYYYYYYYyyy")
         let solution = new Path(map, finish);
         solution.add(start, this._isUCS);
         this.pqueue.push(solution);

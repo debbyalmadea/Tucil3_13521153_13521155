@@ -1,0 +1,21 @@
+10
+AlegriaPark 0 0
+NusaLoka 0 0
+PuspitaLoka 0 0
+AnggrekLoka 0 0
+GiriLoka1 0 0
+GiriLoka2 0 0
+GiriLoka3 0 0
+TheGreen 0 0
+TerasKota 0 0
+PasarModern 0 0
+0 5 0 0 10 0 0 0 0 0
+5 0 3 0 0 8 0 0 0 0
+0 3 0 7 0 0 6 0 0 0
+0 0 7 0 2 0 0 4 0 0
+10 0 0 2 0 0 0 0 6 0
+0 8 0 0 0 0 0 0 0 4
+0 0 6 0 0 0 0 3 0 0
+0 0 0 4 0 0 3 0 0 5
+0 0 0 0 6 0 0 0 0 2
+0 0 0 0 0 4 0 5 2 0
