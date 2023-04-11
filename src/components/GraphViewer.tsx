@@ -31,10 +31,13 @@ function GraphViewer({ graph, path }: { graph: Graph; path: Path | null }) {
       edges.push({
         from: vertex.name,
         to: adjVertex.vertex.name,
-        label: graph
-          .getEdgeWeight(vertex, adjVertex.vertex)
-          .toFixed(2)
-          .toString(),
+        label:
+          adjVertex.weight.toFixed(2).toString() +
+          " / " +
+          (vertex.haversineDistanceWith(adjVertex.vertex) * 1000)
+            .toFixed(2)
+            .toString() +
+          " m",
       });
     });
   });
@@ -75,6 +78,9 @@ function GraphViewer({ graph, path }: { graph: Graph; path: Path | null }) {
     width: "70vw",
     edges: {
       color: "#FFFFFF",
+      font: {
+        size: 10,
+      },
     },
   };
 

@@ -42,15 +42,18 @@ const ShortestPathView = () => {
   const [mode, setMode] = useState<MapMode>(MapMode.BASIC);
   const [appMode, setAppMode] = useState<AppMode>(AppMode.MAP);
   const [path, setPath] = useState<Path | null>(null);
-  const [readAsWeighted, setReadAsWeighted] = useState(true);
+  const [readAsWeighted, setReadAsWeighted] = useState(
+    appMode == AppMode.GRAPH
+  );
+  const [directed, setDirected] = useState(false);
 
   useEffect(() => {
-    console.log(algorithm, start, goal, graph);
-    console.log(graph.getVertexes());
     if (start != null && goal != null && !graph.isEmpty()) {
       // calculate path
       let findingPath = new FindingPath(algorithm);
       let result = findingPath.useUCSA(graph, start.value, goal.value);
+      console.log("RESULT FROM " + start.label + " TO " + goal.label);
+      console.log(result?.toString());
 
       if (result != undefined) {
         if (result.path.length == 0) {
@@ -91,11 +94,10 @@ const ShortestPathView = () => {
         setFile(file);
         let content = reader.result as string;
         try {
-          let graph = Parser.parse(
-            content,
-            readAsWeighted && appMode == AppMode.GRAPH
-          );
+          let graph = Parser.parse(content, readAsWeighted);
           setGraph(graph);
+          console.log("FINISH READING FILE");
+          console.log(graph.toString());
 
           /* set options */
           let options: OptionInterface[] = [];
@@ -161,6 +163,7 @@ const ShortestPathView = () => {
           path={path}
           addOption={addOption}
           drawMode={mode == MapMode.DRAW}
+          directed={directed}
         />
       )}
 
@@ -191,48 +194,60 @@ const ShortestPathView = () => {
               />
             </button>
             {file && <p className="mt-2">{file.name}</p>}
-            {appMode == AppMode.GRAPH && (
-              <div className="space-x-2 mt-2">
-                <input
-                  type="checkbox"
-                  id="weighted"
-                  onChange={(e) => {
-                    setReadAsWeighted(!readAsWeighted);
-                    reset();
-                  }}
-                  checked={readAsWeighted}
-                />
-                <label htmlFor="weighted">Weighted graph input</label>
-              </div>
-            )}
+            <div className="space-x-2 mt-2">
+              <input
+                type="checkbox"
+                id="weighted"
+                onChange={(e) => {
+                  setReadAsWeighted(!readAsWeighted);
+                  reset();
+                }}
+                checked={readAsWeighted}
+              />
+              <label htmlFor="weighted">read as weighted</label>
+            </div>
           </div>
 
           {appMode == AppMode.MAP && (
-            <div className="flex flex-row space-x-4 w-full">
-              <button
-                className={`w-full py-4 font-bold hover:rounded-3xl flex-grow ${
-                  mode == MapMode.BASIC
-                    ? "rounded-2xl bg-white hover:bg-emerald-200"
-                    : "rounded-3xl bg-emerald-600 text-white border-4 border-emerald-900"
-                }`}
-                onClick={(e) => {
-                  if (mode == MapMode.BASIC) {
-                    if (file != null) reset();
-                    setMode(MapMode.DRAW);
-                  } else {
-                    setMode(MapMode.BASIC);
-                  }
-                }}
-              >
-                CREATE FROM MAP
-              </button>
-              <button
-                className="bg-white rounded-2xl w-24 text-xl hover:bg-emerald-200 hover:rounded-3xl"
-                onClick={reset}
-              >
-                <FontAwesomeIcon icon={faRotateRight} />
-              </button>
-            </div>
+            <>
+              <div className="flex flex-row space-x-4 w-full">
+                <button
+                  className={`w-full py-4 font-bold hover:rounded-3xl flex-grow ${
+                    mode == MapMode.BASIC
+                      ? "rounded-2xl bg-white hover:bg-emerald-200"
+                      : "rounded-3xl bg-emerald-600 text-white border-4 border-emerald-900"
+                  }`}
+                  onClick={(e) => {
+                    if (mode == MapMode.BASIC) {
+                      if (file != null) reset();
+                      setMode(MapMode.DRAW);
+                    } else {
+                      setMode(MapMode.BASIC);
+                    }
+                  }}
+                >
+                  CREATE FROM MAP
+                </button>
+                <button
+                  className="bg-white rounded-2xl w-24 text-xl hover:bg-emerald-200 hover:rounded-3xl"
+                  onClick={reset}
+                >
+                  <FontAwesomeIcon icon={faRotateRight} />
+                </button>
+              </div>
+              <div className="space-x-2 mt-2 text-white w-full text-left">
+                <input
+                  type="checkbox"
+                  id="directed"
+                  onChange={(e) => {
+                    setDirected(!directed);
+                    reset();
+                  }}
+                  checked={directed}
+                />
+                <label htmlFor="directed">draw directed graph</label>
+              </div>
+            </>
           )}
 
           <div className="w-full h-full overflow-scroll	 bg-white px-12 py-10 rounded-xl divide-y space-y-4">
@@ -305,13 +320,15 @@ const ShortestPathView = () => {
                 <p className="mt-2">{path.toString()}</p>
                 <h2 className="mt-4 font-bold">Total Distance: </h2>
                 <p className="mt-2">{path.cost}</p>
-                <h2 className="mt-4 font-bold">Actual Total Distance:</h2>
-                <p className="text-xs text-gray-500">
-                  * assuming latitude longitude input
-                </p>
-                <p className="mt-2">
-                  {(path.haversineCost * 1000).toFixed(2)} m
-                </p>
+                <>
+                  <h2 className="mt-4 font-bold">Actual Total Distance:</h2>
+                  <p className="text-xs text-gray-500">
+                    * assuming latitude longitude input
+                  </p>
+                  <p className="mt-2">
+                    {(path.haversineCost * 1000).toFixed(2)} m
+                  </p>
+                </>
               </div>
             )}
           </div>
