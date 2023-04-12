@@ -30,7 +30,15 @@ In this mode the graph will be visualized on a map by using [OpenStreetMap](http
 
 ![](/public/create-graph-preview.gif)
 
-While creating graph from map, you can choose it to be directed or undirected by checking the directed button
+While creating graph from map, you can choose it to be directed or undirected by checking the **directed button**
+
+To delete a marker, simply `double click` on the existing marker
+
+![](public/delete-marker-preview.gif)
+
+..and to delete a line, simply `click` on the existing marker then `hold` your click until you reach another marker
+
+![](public/delete-line-preview.gif)
 
 ### File Input
 You can choose how the program will read your text file, wether as weighted matrix or not
@@ -40,9 +48,12 @@ You can choose how the program will read your text file, wether as weighted matr
 There are three parts in the input file
 1. First and on the top is the amount `n` of node/place
 2. Second to (n+1)th row is the node description which has format [place-name] [place-x-absis] [place-y-absis]. The place name **do not** include any whitespace. The x-absis and y-absis will only affect heuristic process of A* if you choose `weighted input` mode. Feel free to set it to 0 if you don't want it to affect the process (only in `weighted input` mode) 
-3. The next rows are weighted adjency matrix. It represent an edge from `row index` to `col index`. The index is based on the order of the 2nd part. It supports both directed and undirected graph.
+3. The next rows are adjency matrix. It represent an edge from `row index` to `col index`. The index is based on the order of the 2nd part. It supports both directed and undirected graph.
 
 Note: Duplicated vertex's name are **not allowed**
+
+Example input for weighted matrix
+
 ```
 10
 AlegriaPark 0 0
@@ -66,6 +77,9 @@ PasarModern 0 0
 0 0 0 0 6 0 0 0 0 2
 0 0 0 0 0 4 0 5 2 0
 ```
+
+Example input for non-weighted matrix
+
 ```
 10
 AlegriaPark -6.29801545988442 106.68423915084924
