@@ -16,6 +16,10 @@ class Graph {
     return Array.from(this._graph.keys())
   }
 
+  public get graph(): Map<Vertex, AdjVertexInterface[]> {
+    return this._graph;
+  }
+
   /**
    * 
    * @param vertexName 
@@ -47,7 +51,6 @@ class Graph {
     let found = false;
     Array.from(this._graph.keys()).forEach((vertex) => {
       if (vertex.name == name) {
-        console.log(vertex.name, name)
         found = true;
       }
     })
@@ -99,7 +102,7 @@ class Graph {
    * 
    * @param vertex1 first vertex
    * @param vertex2 second vertex
-   * @returns 1 if successfully added, 0 if failed (duplicate vertex)
+   * @returns 1 if successfully added, 0 if failed (duplicate edge)
    */
   public addEdge(from: Vertex, to: Vertex, weight?: number): number {
     // check if from exists
@@ -120,6 +123,23 @@ class Graph {
     return 0;
   }
 
+  public removeVertex(vertex: Vertex) : boolean {
+    this.getVertexes().forEach((remaining) => {
+      this.removeEdge(remaining, vertex);
+    })
+    if (this._graph.delete(vertex)) {
+      return true
+    }
+
+    return false
+  }
+
+  public removeEdge(from: Vertex, to: Vertex) {
+    let adjVertexes = this.getAdjVertexes(from)
+    adjVertexes = adjVertexes.filter((adj) => !adj.vertex.isEqual(to));
+    this._graph.set(from, adjVertexes);
+  }
+
   /**
    * 
    * @returns string equivalent of graphs, shows information from graphs
@@ -130,6 +150,26 @@ class Graph {
   public toString(): string {
     let result = '';
     const vertexes = Array.from(this._graph.keys())
+    result += vertexes.length + "\n"
+    for (const vertex of vertexes) {
+      result += vertex.name + ' ' + vertex.px + ' ' + vertex.py
+      result += '\n';
+    }
+
+    for (let i = 0; i < vertexes.length; i++) {
+      for (let j = 0; j < vertexes.length; j++) {
+        if (this.isEdgeExist(vertexes[i], vertexes[j])) {
+          result += 1;
+        } else {
+          result += 0;
+        }
+
+        result += " ";
+      }
+      result += "\n";
+    }
+
+    result += "\n"
     for (const vertex of vertexes) {
       for (const adjVertex of this._graph.get(vertex)!) {
         result += vertex.name + ' - ';

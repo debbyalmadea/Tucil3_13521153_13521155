@@ -7,7 +7,7 @@ import {
   LatLngTuple,
   Layer,
   LeafletMouseEvent,
-  Map,
+  Map as OSMMap,
   marker,
   polyline,
   popup,
@@ -23,18 +23,18 @@ let pathLayers: Layer[] = [];
 function MapViewer({
   graph,
   path,
-  addOption,
+  populateOptions,
   drawMode = false,
   directed = false,
 }: {
   graph: Graph;
   path: Path | null;
-  addOption: (option: { value: Vertex; label: string }) => void;
+  populateOptions: () => void;
   drawMode: boolean;
   directed: boolean;
 }) {
   const defaultPosition: LatLngTuple = [-6.8915, 107.6107];
-  const [map, setMap] = useState<Map | null>(null);
+  const [map, setMap] = useState<OSMMap | null>(null);
   // used in drawing edge on the map in DRAW mode
   // store vertex from mouse down event
   const [tempVertex, setTempVertex] = useState<Vertex | null>(null);
@@ -70,7 +70,7 @@ function MapViewer({
           }
         ) *
           1000 <=
-        10.0
+        20.0
       ) {
         foundVertex = vertex;
       }
@@ -84,7 +84,7 @@ function MapViewer({
    *
    * @param map
    */
-  function onMapLoad(map: Map) {
+  function onMapLoad(map: OSMMap) {
     // store it to use it later
     setMap(map);
   }
@@ -95,20 +95,30 @@ function MapViewer({
    * @param map
    * @param ev
    */
-  function onMapDoubleClick(map: Map, ev: LeafletMouseEvent) {
+  function onMapDoubleClick(map: OSMMap, ev: LeafletMouseEvent) {
     const { lat, lng } = ev.latlng;
 
-    // if vertex don't exists in position lat, lng
-    if (getVertex(lat, lng) == null && drawMode) {
-      console.log("draw mode");
-      let vertexName = (graph.getVertexes().length + 1).toString();
-      drawMarker(map, lat, lng, vertexName);
-      let newVertex = new Vertex(vertexName, lat, lng);
-      graph.addVertex(newVertex);
+    if (drawMode) {
+      let existedVertex = getVertex(lat, lng);
+      console.log(existedVertex);
+      // if vertex don't exists in position lat, lng
+      if (existedVertex == null) {
+        console.log("draw mode");
+        let newVertex = new Vertex("", lat, lng);
+        newVertex.name = newVertex.id.toString();
+        drawMarker(map, lat, lng, newVertex.name);
+        graph.addVertex(newVertex);
 
-      // add to options
-      let newOptions = { value: newVertex, label: vertexName };
-      addOption(newOptions);
+        // add to options
+        populateOptions();
+      } else {
+        if (graph.removeVertex(existedVertex)) {
+          drawGraph(false);
+          console.log("bebe");
+          console.log(graph.isNameExist(existedVertex.name));
+          populateOptions();
+        }
+      }
     }
   }
 
@@ -118,7 +128,7 @@ function MapViewer({
    * @param map
    * @param ev
    */
-  function onMouseDown(map: Map, ev: LeafletMouseEvent) {
+  function onMouseDown(map: OSMMap, ev: LeafletMouseEvent) {
     const { lat, lng } = ev.latlng;
 
     if (drawMode) {
@@ -139,7 +149,7 @@ function MapViewer({
    * @param map
    * @param ev
    */
-  function onMouseUp(map: Map, ev: LeafletMouseEvent) {
+  function onMouseUp(map: OSMMap, ev: LeafletMouseEvent) {
     const { lat, lng } = ev.latlng;
 
     if (drawMode) {
@@ -159,12 +169,25 @@ function MapViewer({
         if (graph.addEdge(tempVertex, vertex)) {
           if (!directed) {
             graph.addEdge(vertex, tempVertex);
+            drawLine(
+              map,
+              [
+                [vertex.px, vertex.py],
+                [tempVertex.px, tempVertex.py],
+              ],
+              graph.getEdgeWeight(tempVertex, vertex).toFixed(2).toString() +
+                " / " +
+                (vertex.haversineDistanceWith(tempVertex) * 1000)
+                  .toFixed(2)
+                  .toString() +
+                " m"
+            );
           }
           drawLine(
             map,
             [
-              [vertex.px, vertex.py],
               [tempVertex.px, tempVertex.py],
+              [vertex.px, vertex.py],
             ],
             graph.getEdgeWeight(tempVertex, vertex).toFixed(2).toString() +
               " / " +
@@ -173,6 +196,13 @@ function MapViewer({
                 .toString() +
               " m"
           );
+          console.log(graph.toString());
+        } else {
+          graph.removeEdge(tempVertex, vertex);
+          if (!directed) {
+            graph.removeEdge(vertex, tempVertex);
+          }
+          drawGraph(false);
         }
         setTempVertex(null);
       }
@@ -189,7 +219,10 @@ function MapViewer({
       layers.forEach((layer) => {
         map.removeLayer(layer);
       });
-
+      pathLayers.forEach((layer) => {
+        map.removeLayer(layer);
+      });
+      pathLayers = [];
       layers = [];
     }
   }
@@ -202,7 +235,7 @@ function MapViewer({
    * @param lng
    * @param label will be shown when hovering
    */
-  function drawMarker(map: Map, lat: number, lng: number, label: string) {
+  function drawMarker(map: OSMMap, lat: number, lng: number, label: string) {
     let newMarker = marker(
       { lat: lat, lng: lng },
       {
@@ -228,7 +261,7 @@ function MapViewer({
    * @param opacity
    */
   function drawLine(
-    map: Map,
+    map: OSMMap,
     positions: LatLngExpression[],
     label: string,
     color: string = "#0ea5e9",
@@ -284,11 +317,11 @@ function MapViewer({
   /**
    * draw graph on map
    */
-  function drawGraph() {
+  function drawGraph(flyToFirst: boolean = true) {
     reset();
     if (map != null && !graph.isEmpty()) {
       const vertexes = graph.getVertexes();
-      map.flyTo([vertexes[0].px, vertexes[0].py]);
+      if (flyToFirst) map.flyTo([vertexes[0].px, vertexes[0].py]);
       vertexes.forEach((vertex) => {
         // draw vertex
         drawMarker(map, vertex.px, vertex.py, vertex.name);

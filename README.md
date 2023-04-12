@@ -1,5 +1,7 @@
 # Shortest Path Finder using UCS and A* Algorithm
-***
+
+![](public/app-preview.png)
+
 This project aims to determine the shortest path between two locations, using the Uniform Cost Search (UCS) and A* (A star) algorithms. The map of the city will be represented by a graph, with nodes representing intersections or end points, and edges representing roads. The weight of each edge is the distance between two nodes, which can be calculated using the Euclidean distance formula or Haversine distance formula (for actual distance in meter and km from latitude and longitude) or Google Map ruler
 
 ## Installation
@@ -25,7 +27,9 @@ There are two mode that you can use to visualize the graph
 This mode is useful to visualize graphs that doesn't represent real world map. However, the positioning of the graph **does not reflect** the actual coordinate or weight
 2. Map mode
 In this mode the graph will be visualized on a map by using [OpenStreetMap](https://www.openstreetmap.org/#map=14/38.4154/-81.4913). You can also create the graph yourself. To do it simply click `create from map` button then `double click` on the desired location to create node. To create an edge, simply `click` on the marker then `hold` your click until you reach another marker!
+
 ![](/public/create-graph-preview.gif)
+
 While creating graph from map, you can choose it to be directed or undirected by checking the directed button
 
 ### File Input
@@ -55,7 +59,7 @@ PasarModern 0 0
 5 0 3 0 0 8 0 0 0 0
 0 3 0 7 0 0 6 0 0 0
 0 0 7 0 2 0 0 4 0 0
-10 0 0 2 0 0 0 0 6 0
+10 0 0 2 0 0 0 0 0 0
 0 8 0 0 0 0 0 0 0 4
 0 0 6 0 0 0 0 3 0 0
 0 0 0 4 0 0 3 0 0 5
@@ -88,6 +92,9 @@ PasarModern -6.304171798672273 106.68476943436377
 ### About the Final Distance
 1. Total distance is the total weight from start to goal
 2. Actual total distance is calculated useing haversine distance formula and used in latitude longitude input
+
+### About the Edge's Label
+The edge label represent `<edge weight from input> / <haversine distance>`
 
 ## Author
 | NIM  | Name |
