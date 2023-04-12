@@ -20,10 +20,11 @@ export class Parser {
       const vertexes: Vertex[] = [];
       for (let i = 1; i < vertexCount + 1; i++) {
         const splitWord = splitLine[i].split(" ");
-        let px = 0;
-        let py = 0;
-        px = parseFloat(splitWord[1]);
-        py = parseFloat(splitWord[2]);
+        let px = parseFloat(splitWord[1]);
+        let py = parseFloat(splitWord[2]);
+        if (Number.isNaN(px) || Number.isNaN(py)) {
+          throw new ParserError("Invalid file input. Check repository for more info.")
+        }
         const vertex = new Vertex(
           splitWord[0],
           px,
@@ -40,12 +41,16 @@ export class Parser {
         const vertex1 = vertexes[r];
         const row = splitLine[r + vertexCount + 1].split(" ");
         for (let c = 0; c < vertexCount; c++) {
-          if (parseFloat(row[c]) > 0) {
+          let weight = parseFloat(row[c]);
+          if (Number.isNaN(weight)) {
+            throw new ParserError("Invalid file input. Check repository for more info.")
+          }
+          if (weight > 0 ) {
             const vertex2 = vertexes[c];
             if (!readAsWeightedGraph) {
               graph.addEdge(vertex1, vertex2);
             } else {
-              graph.addEdge(vertex1, vertex2, parseFloat(row[c]));
+              graph.addEdge(vertex1, vertex2, weight);
             }
           }
         }
