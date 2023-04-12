@@ -148,9 +148,16 @@ const ShortestPathView = () => {
    *
    * @param option
    */
-  function addOption(option: OptionInterface) {
-    let newOptions = [...options, option];
-    setOptions(newOptions);
+  function populateOptions() {
+    /* set options */
+    let options: OptionInterface[] = [];
+    graph.getVertexes().forEach((vertex) => {
+      options.push({ value: vertex, label: vertex.name });
+    });
+    setOptions(options);
+    setStart(null);
+    setGoal(null);
+    setPath(null);
   }
 
   return (
@@ -161,7 +168,7 @@ const ShortestPathView = () => {
         <MapViewer
           graph={graph}
           path={path}
-          addOption={addOption}
+          populateOptions={populateOptions}
           drawMode={mode == MapMode.DRAW}
           directed={directed}
         />
@@ -219,7 +226,6 @@ const ShortestPathView = () => {
                   }`}
                   onClick={(e) => {
                     if (mode == MapMode.BASIC) {
-                      if (file != null) reset();
                       setMode(MapMode.DRAW);
                     } else {
                       setMode(MapMode.BASIC);
@@ -241,7 +247,6 @@ const ShortestPathView = () => {
                   id="directed"
                   onChange={(e) => {
                     setDirected(!directed);
-                    reset();
                   }}
                   checked={directed}
                 />
@@ -338,9 +343,11 @@ const ShortestPathView = () => {
             onClick={(e) => {
               if (appMode == AppMode.MAP) {
                 setAppMode(AppMode.GRAPH);
+                setReadAsWeighted(true);
                 reset();
               } else {
                 setAppMode(AppMode.MAP);
+                setReadAsWeighted(false);
                 reset();
               }
             }}
