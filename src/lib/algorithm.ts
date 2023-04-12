@@ -54,6 +54,10 @@ class FindingPath{
                 if(this._isVisited.get(solution.lastVertex) != true){
                     this._isVisited.set(solution.lastVertex, true); //
                 }
+                else{
+                    this.pqueue.pop();
+                    continue;
+                }
                 // check the cheapest path ended up with finishnode or no
                 if(start == finish){
                     found = true;
