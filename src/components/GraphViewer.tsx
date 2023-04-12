@@ -11,8 +11,6 @@ function GraphViewer({ graph, path }: { graph: Graph; path: Path | null }) {
       return {
         id: vertex.name,
         label: vertex.name,
-        x: 50 * Math.random() * 10,
-        y: 50 * Math.random() * 10,
         color: "#7dd3fc",
       };
     });
@@ -71,15 +69,17 @@ function GraphViewer({ graph, path }: { graph: Graph; path: Path | null }) {
   };
 
   const options = {
-    physics: {
-      enabled: false,
-    },
     height: "100%",
     width: "70vw",
     edges: {
       color: "#FFFFFF",
       font: {
-        size: 10,
+        size: 5,
+      },
+    },
+    nodes: {
+      font: {
+        size: 8,
       },
     },
   };
