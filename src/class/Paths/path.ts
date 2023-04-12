@@ -41,7 +41,6 @@ class Path {
         if (this._path.length > 0) {
             this._cost += this.graph.getEdgeWeight(this.lastVertex, vertex);
             this._haversineCost += vertex.haversineDistanceWith(this.lastVertex)
-            console.log(this.haversineCost)
         }
         if(isUCS){
             this._distance = 0;

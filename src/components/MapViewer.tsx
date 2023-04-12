@@ -114,8 +114,6 @@ function MapViewer({
       } else {
         if (graph.removeVertex(existedVertex)) {
           drawGraph(false);
-          console.log("bebe");
-          console.log(graph.isNameExist(existedVertex.name));
           populateOptions();
         }
       }
@@ -165,7 +163,6 @@ function MapViewer({
        *    vertex from mouse up event
        */
       if (vertex != null && tempVertex != null && !tempVertex.isEqual(vertex)) {
-        console.log(tempVertex, vertex);
         if (graph.addEdge(tempVertex, vertex)) {
           if (!directed) {
             graph.addEdge(vertex, tempVertex);
