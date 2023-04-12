@@ -13,10 +13,16 @@ export class Parser {
   public static parse(filecontent: string, readAsWeightedGraph: boolean = false): Graph {
     const graph = new Graph();
 
-    const splitLine = filecontent.split("\n");
-
+    
     try {
+      const splitLine = filecontent.split("\n");
+      if (splitLine.length === 0) {
+        throw new ParserError("Empty file!")
+      }
       const vertexCount = parseInt(splitLine[0]);
+      if (Number.isNaN(vertexCount)) {
+        throw new ParserError("Invalid file input. Check repository for more info.")
+      }
       const vertexes: Vertex[] = [];
       for (let i = 1; i < vertexCount + 1; i++) {
         const splitWord = splitLine[i].split(" ");
