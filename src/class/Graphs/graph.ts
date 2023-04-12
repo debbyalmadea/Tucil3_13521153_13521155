@@ -123,6 +123,11 @@ class Graph {
     return 0;
   }
 
+  /**
+   * 
+   * @param vertex 
+   * @returns true if successfully delete a vertex
+   */
   public removeVertex(vertex: Vertex) : boolean {
     this.getVertexes().forEach((remaining) => {
       this.removeEdge(remaining, vertex);
@@ -134,6 +139,12 @@ class Graph {
     return false
   }
 
+  /**
+   * delete edge from vertex "from" to vertex "to"
+   * 
+   * @param from 
+   * @param to 
+   */
   public removeEdge(from: Vertex, to: Vertex) {
     let adjVertexes = this.getAdjVertexes(from)
     adjVertexes = adjVertexes.filter((adj) => !adj.vertex.isEqual(to));
