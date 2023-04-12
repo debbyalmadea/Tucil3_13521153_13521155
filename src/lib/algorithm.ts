@@ -36,15 +36,14 @@ class FindingPath{
         this.pqueue.push(solution);
         let found = false;
         let cantfound = false;
-        // let startVertex = map.getVertexObj(start);
-        // let finishVertex = map.getVertexObj(finish);
         let adjVertexes = map.getAdjVertexes(start);
         if(start == finish){
             found = true;
             return this.pqueue.top();
         }
+        // looping while route solution is not found yet & there's still route to be tracked
         while(found == false && cantfound == false){
-            solution = this.pqueue.top();
+            solution = this.pqueue.top();   // route with cheapest cost so far
 
             if (solution != undefined) {
                 let temp = solution.copy();
@@ -84,6 +83,7 @@ class FindingPath{
                 }
 
             }
+            // check if there is route to be tracked
             if (this.pqueue.empty() && !found) {
                 cantfound = true;
                 console.log("Tidak ditemukan solusi");

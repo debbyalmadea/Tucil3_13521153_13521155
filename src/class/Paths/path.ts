@@ -10,34 +10,34 @@ class Path {
 
   constructor(private graph: Graph, private _goal : Vertex) {}
 
-  public get path(): Vertex[] {
+  public get path(): Vertex[] { // get the path
     return this._path;
   }
 
-  public get graph_map() : Graph{
+  public get graph_map() : Graph{ // get the map graph
     return this.graph;
   }
-  public get cost(): number {
+  public get cost(): number {   // get the cost of path
     return this._cost;
   }
 
-  public get haversineCost(): number {
+  public get haversineCost(): number {  // get the haversine cost
     return this._haversineCost;
   }
 
-  public get distance(): number {
+  public get distance(): number { // get the distance from the last node of route to the goal node
     return this._distance
   }
 
-  public get goal():Vertex {
+  public get goal():Vertex {     // get the goal vertex
     return this._goal
   }
 
   public get lastVertex(): Vertex {
-    return this._path[this._path.length - 1];
+    return this._path[this._path.length - 1]; // get the last vertex of the path
   }
   
-  public add(vertex: Vertex, isUCS : boolean): void {
+  public add(vertex: Vertex, isUCS : boolean): void { // adding a vertex to a route
         if (this._path.length > 0) {
             this._cost += this.graph.getEdgeWeight(this.lastVertex, vertex);
             this._haversineCost += vertex.haversineDistanceWith(this.lastVertex)
@@ -52,7 +52,7 @@ class Path {
         this._path.push(vertex);
   }
 
-  public copy(): Path {
+  public copy(): Path {   // return a copy of path
     const copyPath = new Path(this.graph, this._goal);
     copyPath._cost = this.cost;
     copyPath._distance = this.distance;
